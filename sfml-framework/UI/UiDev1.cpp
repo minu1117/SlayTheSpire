@@ -45,7 +45,7 @@ void UiDev1::Init()
 		// BackButton
 		{
 			backButton = new SpriteObj();
-			backButton->SetAll(*backButtonImage, { 50, size.y - 200.f }, Origins::MC);
+			backButton->SetAll(*backButtonImage, { 100, size.y - 200.f }, Origins::MC);
 		}
 	}
 
@@ -89,7 +89,7 @@ void UiDev1::Init()
 		charSelect->SetAll(*charSelectImage, { size.x / 2, size.y / 2 + 300 }, Origins::MC);
 		uiObjList.push_back(charSelect);
 
-		PlayButton->SetAll(*playButtonImage, { size.x - 50, backButton->GetPos().y }, Origins::MC);
+		PlayButton->SetAll(*playButtonImage, { size.x - 100, backButton->GetPos().y }, Origins::MC);
 		PlayButton->SetActive(false);
 		uiObjList.push_back(PlayButton);
 	}
@@ -128,8 +128,6 @@ void UiDev1::Update(float dt)
 	if (titleUi == true)
 	{
 		SetTitleUi(true);
-		modeSelectBackground->SetActive(false);
-		backButton->SetActive(false);
 		if (Button::ButtonOnRect(*cursor, *StartButton))
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
@@ -145,8 +143,6 @@ void UiDev1::Update(float dt)
 	if (modeSelectUi == true)
 	{
 		SetModeSelectUi(true);
-		modeSelectBackground->SetActive(true);
-		backButton->SetActive(true);
 		if (Button::ButtonOnRect(*cursor, *normalMode))
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
@@ -243,10 +239,14 @@ void UiDev1::SetTitleUi(bool set)
 {
 	StartButton->SetActive(set);
 	ExitButton->SetActive(set);
+	modeSelectBackground->SetActive(false);
+	backButton->SetActive(false);
 }
 
 void UiDev1::SetModeSelectUi(bool set)
 {
+	modeSelectBackground->SetActive(set);
+	backButton->SetActive(set);
 	normalMode->SetActive(set);
 }
 
