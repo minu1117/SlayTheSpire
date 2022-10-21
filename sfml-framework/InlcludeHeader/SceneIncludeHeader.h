@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../Scenes/SceneManager.h"
+#include "../Scenes/SceneMgr.h"
 #include "../Framework/InputMgr.h"
 #include "../Framework/ResourceMgr.h"
 #include "../GameObject/SpriteObj.h"
-#include "../GameObject/TextObject.h"
-#include "../Framework/SoundManager.h"
+#include "../GameObject/TextObj.h"
+#include "../Framework/SoundMgr.h"
+#include "../Framework/Framework.h"

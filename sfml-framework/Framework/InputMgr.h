@@ -17,33 +17,38 @@ struct AxisInfo
 	Axis axis;
 	list<Keyboard::Key> positives;
 	list<Keyboard::Key> negatives;
+	float sensi;
+	float value;
 };
+
+// ����ƽ �Լ��� �̿��ؼ� Ű���� �� ���콺 �Է��� �˻��� �� �ִ� Ŭ����
 
 class InputMgr
 {
 private:
 	static map<Axis, AxisInfo> axisInfoMap;
 
-	static list<Keyboard::Key> downList;
-	static list<Keyboard::Key> ingList;
-	static list<Keyboard::Key> upList;
+	static list<int> downList;
+	static list<int> ingList;
+	static list<int> upList;
 
-	static list<Mouse::Button> mouseDownList;
-	static list<Mouse::Button> mouseIngList;
-	static list<Mouse::Button> mouseUpList;
+	static Vector2f mousePos;
 
 public:
 	static void Init();
-	static void ClearInput();
-	static void UpdateInput(Event& ev);
+	static void Update(float dt);
+	static void ProcessInput(Event& ev);
 
 	static bool GetKeyDown(Keyboard::Key key);
 	static bool GetKey(Keyboard::Key key);
 	static bool GetKeyUp(Keyboard::Key key);
 
-	static bool GetMouseButtonDown(Mouse::Button mouse);
-	static bool GetMouseButton(Mouse::Button mouse);
-	static bool GetMouseButtonUp(Mouse::Button mouse);
-
+	static float GetAxis(Axis axis);
 	static float GetAxisRaw(Axis axis);
+
+	static const Vector2f& GetMousePos();
+	static bool GetMouseButtonDown(Mouse::Button key);
+	static bool GetMouseButton(Mouse::Button key);
+	static bool GetMouseButtonUp(Mouse::Button key);
+
 };

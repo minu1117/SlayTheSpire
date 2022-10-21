@@ -2,6 +2,16 @@
 
 string ResourceMgr::FilePath("Resources.csv");
 
+ResourceMgr::ResourceMgr()
+{
+
+}
+
+ResourceMgr::~ResourceMgr()
+{
+    ReleaseAll();
+}
+
 void ResourceMgr::ReleaseAll()
 {
     for (auto it : texMap)
@@ -9,13 +19,11 @@ void ResourceMgr::ReleaseAll()
         delete it.second;
     }
     texMap.clear();
-
     for (auto it : fontMap)
     {
         delete it.second;
     }
     fontMap.clear();
-
     for (auto it : soundMap)
     {
         delete it.second;
@@ -53,7 +61,7 @@ bool ResourceMgr::Load(ResourceTypes type, string id)
         return LoadSoundBuffer(id);
     }
 
-    // Error
+    // Error Msg
     return false;
 }
 
@@ -63,14 +71,12 @@ bool ResourceMgr::LoadTexture(string id)
     {
         return false;
     }
-
     auto texture = new Texture();
     if (!texture->loadFromFile(id))
     {
         delete texture;
         return false;
     }
-
     texMap.insert({id, texture});
     return true;
 }
@@ -81,14 +87,12 @@ bool ResourceMgr::LoadFont(string id)
     {
         return false;
     }
-
     auto font = new Font();
     if (!font->loadFromFile(id))
     {
         delete font;
         return false;
     }
-
     fontMap.insert({ id, font });
     return true;
 }
@@ -99,14 +103,12 @@ bool ResourceMgr::LoadSoundBuffer(string id)
     {
         return false;
     }
-    
     auto buffer = new SoundBuffer();
     if (!buffer->loadFromFile(id))
     {
         delete buffer;
         return false;
     }
-
     soundMap.insert({ id, buffer });
     return true;
 }
@@ -116,7 +118,6 @@ Texture* ResourceMgr::GetTexture(string id)
     auto it = texMap.find(id);
     if (it == texMap.end())
         return nullptr;
-
     return it->second;
 }
 
@@ -125,7 +126,6 @@ Font* ResourceMgr::GetFont(string id)
     auto it = fontMap.find(id);
     if (it == fontMap.end())
         return nullptr;
-
     return it->second;
 }
 
@@ -134,6 +134,5 @@ SoundBuffer* ResourceMgr::GetSoundBuffer(string id)
     auto it = soundMap.find(id);
     if (it == soundMap.end())
         return nullptr;
-
     return it->second;
 }

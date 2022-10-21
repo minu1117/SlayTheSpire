@@ -24,8 +24,8 @@ private:
 	map<string, SoundBuffer*> soundMap;
 
 public:
-	ResourceMgr() {};
-	~ResourceMgr() { ReleaseAll(); };
+	ResourceMgr();
+	~ResourceMgr();
 
 	static string FilePath;
 
@@ -40,6 +40,7 @@ public:
 	Texture* GetTexture(string id);
 	Font* GetFont(string id);
 	SoundBuffer* GetSoundBuffer(string id);
+
 };
 
 #define RESOURCE_MGR (ResourceMgr::GetInstance())

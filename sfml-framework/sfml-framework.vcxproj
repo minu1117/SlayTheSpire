@@ -116,7 +116,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>./SFML-2.5.1/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -146,41 +146,53 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GameObject\CardManager.cpp" />
+    <ClCompile Include="Framework\Button.cpp" />
     <ClCompile Include="DataTable\DataTable.cpp" />
     <ClCompile Include="DataTable\DataTableMgr.cpp" />
     <ClCompile Include="DataTable\StringTable.cpp" />
     <ClCompile Include="Framework\Framework.cpp" />
     <ClCompile Include="Framework\InputMgr.cpp" />
     <ClCompile Include="Framework\ResourceMgr.cpp" />
+    <ClCompile Include="Framework\SoundMgr.cpp" />
     <ClCompile Include="Framework\Utils.cpp" />
+    <ClCompile Include="GameObject\TextObj.cpp" />
+    <ClCompile Include="GameObject\VertexArrayObj.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="GameObject\Object.cpp" />
+    <ClCompile Include="GameObject\Player.cpp" />
     <ClCompile Include="Scenes\SceneDev1.cpp" />
-    <ClCompile Include="Scenes\SceneDev2.cpp" />
     <ClCompile Include="Scenes\Scene.cpp" />
-    <ClCompile Include="Scenes\SceneManager.cpp" />
     <ClCompile Include="GameObject\SpriteObj.cpp" />
-    <ClCompile Include="GameObject\TextObject.cpp" />
-    <ClCompile Include="Framework\SoundManager.cpp" />
+    <ClCompile Include="Scenes\SceneMgr.cpp" />
+    <ClCompile Include="Ui\UiDev1.cpp" />
+    <ClCompile Include="Ui\UiMgr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3rd\rapidcsv.h" />
     <ClInclude Include="3rd\Singleton.h" />
+    <ClInclude Include="GameObject\CardManager.h" />
+    <ClInclude Include="Framework\Button.h" />
     <ClInclude Include="DataTable\DataTable.h" />
     <ClInclude Include="DataTable\DataTableMgr.h" />
     <ClInclude Include="DataTable\StringTable.h" />
     <ClInclude Include="Framework\Framework.h" />
     <ClInclude Include="Framework\InputMgr.h" />
     <ClInclude Include="Framework\ResourceMgr.h" />
+    <ClInclude Include="Framework\SoundMgr.h" />
     <ClInclude Include="Framework\Utils.h" />
     <ClInclude Include="GameObject\Object.h" />
+    <ClInclude Include="GameObject\TextObj.h" />
+    <ClInclude Include="GameObject\VertexArrayObj.h" />
+    <ClInclude Include="InlcludeHeader\SceneIncludeHeader.h" />
+    <ClInclude Include="GameObject\Player.h" />
     <ClInclude Include="Scenes\SceneDev1.h" />
-    <ClInclude Include="Scenes\SceneDev2.h" />
     <ClInclude Include="Scenes\Scene.h" />
-    <ClInclude Include="Scenes\SceneManager.h" />
     <ClInclude Include="GameObject\SpriteObj.h" />
-    <ClInclude Include="GameObject\TextObject.h" />
-    <ClInclude Include="Framework\SoundManager.h" />
+    <ClInclude Include="InlcludeHeader\UiIncludeHeader.h" />
+    <ClInclude Include="Scenes\SceneMgr.h" />
+    <ClInclude Include="Ui\UiDev1.h" />
+    <ClInclude Include="Ui\UiMgr.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

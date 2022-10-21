@@ -1,2 +1,7 @@
 id,"type(0: Texture, 1: Font, 2: Sound)"
-Fonts/Mabinogi_Classic_TTF.ttf,1
+fonts/Mabinogi_Classic_TTF.ttf,1
+graphics/AttactCard.png,0
+graphics/DefenseCard.png,0
+graphics/UtilCard.png,0
+graphics/testbackground.png,0
+graphics/testbackground2.png,0

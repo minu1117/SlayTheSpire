@@ -14,20 +14,32 @@ protected:
 
 	Vector2f position;
 	float rotation;
+	Vector2f scale;
+	
+	static int objCount;
 
 public:
-	Object() { Init(); };
-	virtual ~Object() { Release(); };
+	Object();
+	virtual ~Object();
 
-	virtual void SetActive(bool active) { enabled = active; };
-	virtual bool GetActive() const { return enabled; };
+	int GetObjId() const;
 
-	virtual void SetPos(const Vector2f& pos) { position = pos; };
-	virtual const Vector2f& GetPos() { return position; };
+	const string& GetName()const { return name; }
+	void SetName(const string& n) { name = n; }
 
-	virtual void Init() {};
-	virtual void Release() {};
-	virtual void Update(float dt) {};
-	virtual void Draw(RenderWindow& window) {};
+	virtual void SetActive(bool active);
+	virtual bool GetActive() const;
+
+	virtual void Init();
+	virtual void Release();
+
+	virtual void Reset();
+
+	virtual void SetPos(const Vector2f& pos);
+	virtual const Vector2f& GetPos() const;
+	virtual void Translate(const Vector2f& delta);
+
+	virtual void Update(float dt);
+	virtual void Draw(RenderWindow& window);
 };
 

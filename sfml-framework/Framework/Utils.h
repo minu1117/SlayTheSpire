@@ -7,15 +7,15 @@ using namespace std;
 
 enum class Origins
 {
-	TopLeft,	// 0
-	TopCenter,
-	TopRight,
-	MiddleLeft,
-	MiddleCenter,
-	MiddleRight,
-	LowLeft,
-	LowCenter,
-	LowRight,	// 8
+	TL,	// 0
+	TC,
+	TR,
+	ML,
+	MC,
+	MR,
+	BL,
+	BC,
+	BR,	// 8
 };
 
 class Utils
@@ -30,6 +30,23 @@ public:
 	static void SetOrigin(Shape& obj, Origins origin);
 	static void SetOrigin(Transformable& obj, Origins origin, FloatRect rect);
 	
+	static float Clamp(float v, float min, float max);
+
 	static int RandomRange(int min, int maxExclude);
+	static float RandomRange(float min, float max);
+
+	static float SqrMagnitude(const Vector2f& vec);
+	static float Magnitude(const Vector2f& vec);
+	static Vector2f Normalize(const Vector2f& vec);
+	static float Distance(const Vector2f& vec1, const Vector2f& vec2);
+	static float Dot(const Vector2f& a, const Vector2f& b);
+	static Vector2f GetNormal(const Vector2f& vec);
+
+	static float Angle(const Vector2f& start, const Vector2f& end);
+	static float Angle(const Vector2f& dir);
+
+	static float RandomZeroToOne();
+	static Vector2f RandomInCirclePoint();
+	static Vector2f RandomOutCirclePoint();
 };
 

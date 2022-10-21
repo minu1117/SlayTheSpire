@@ -3,8 +3,7 @@
 
 int main()
 {
-    Framework framework(1920, 1080);
-    framework.Init();
-    framework.Play();
+    FRAMEWORK->Init(1920, 1080);
+    FRAMEWORK->Do();
     return 0;
 }
