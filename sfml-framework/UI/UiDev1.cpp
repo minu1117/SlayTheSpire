@@ -100,7 +100,7 @@ void UiDev1::Init()
 	}
 
 	{
-		cursor->SetAll(*RESOURCE_MGR->GetTexture("graphics/DefenseCard.png"), { 0, 0 }, Origins::MC);
+		cursor->SetAll(*RESOURCE_MGR->GetTexture("graphics/cursor.png"), { 0, 0 }, Origins::MC);
 		uiObjList.push_back(cursor);
 	}
 
@@ -115,6 +115,10 @@ void UiDev1::Release()
 void UiDev1::Reset()
 {
 	UiMgr::Reset();
+	titleUi = true;
+	modeSelectUi = false;
+	charSelectUi = false;
+	StartUi = false;
 }
 
 void UiDev1::Update(float dt)

@@ -59,6 +59,11 @@ void SceneDev2_Play::Update(float dt)
 {
 	Scene::Update(dt);
 
+	if (InputMgr::GetKeyDown(Keyboard::Key::Escape))
+	{
+		SCENE_MGR->ChangeScene(Scenes::Dev1);
+	}
+
 	//if (Button::ButtonOnRect()
 	//{
 	//	if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
