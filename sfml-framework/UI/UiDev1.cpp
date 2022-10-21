@@ -1,7 +1,11 @@
 #include "UiDev1.h"
 #include "../InlcludeHeader/UiIncludeHeader.h"
 #include "../Scenes/SceneDev1.h"
-#include "../Framework/Button.h"
+
+SpriteObj* UiDev1::cursor = new SpriteObj();
+SpriteObj* UiDev1::PlayButton = new SpriteObj();
+SpriteObj* UiDev1::ExitButton = new SpriteObj();
+bool UiDev1::titleUi = true;
 
 UiDev1::UiDev1(Scene* scene)
 	: UiMgr(scene)
@@ -14,68 +18,90 @@ UiDev1::~UiDev1()
 
 void UiDev1::Init()
 {
+	Vector2i getSize = FRAMEWORK->GetWindowSize();
+	Vector2f size = { (float)getSize.x,  (float)getSize.y };
 	Font& font = *RESOURCE_MGR->GetFont("fonts/Mabinogi_Classic_TTF.ttf");
-	auto testbackground = RESOURCE_MGR->GetTexture("graphics/UtilCard.png");
+	auto testBackground = RESOURCE_MGR->GetTexture("graphics/testbackground.png");
+	auto testButton1 = RESOURCE_MGR->GetTexture("graphics/UtilCard.png");
+	auto testButton2 = RESOURCE_MGR->GetTexture("graphics/DefenseCard.png");
+	auto playButtonImage = RESOURCE_MGR->GetTexture("graphics/PlayButton.png");
+	auto startButtonImage = RESOURCE_MGR->GetTexture("graphics/StartButton.png");
+	auto exitButtonImage = RESOURCE_MGR->GetTexture("graphics/ExitButton.png");
+	auto backButtonImage = RESOURCE_MGR->GetTexture("graphics/BackButton.png");
+	auto normalModeImage = RESOURCE_MGR->GetTexture("graphics/NormalMode.png");
+	auto normalModeBackground = RESOURCE_MGR->GetTexture("graphics/ModeSelectBackground.png");
+	auto ironCladBackgroundImage = RESOURCE_MGR->GetTexture("graphics/ironclad.png");
+	auto charSelectImage = RESOURCE_MGR->GetTexture("graphics/ironcladSelect.png");
 	
+	// Public UI
 	{
-		PlayButton = new SpriteObj();
-		PlayButton->SetAll();
-	}
-	{
-		player = new Player(80, 80, 50, 3, 3, 0);
-		player->SetAll(*RESOURCE_MGR->GetTexture("graphics/DefenseCard.png"), { 1920 / 2, 1080 / 2 }, Origins::MC);
-		uiObjList.push_back(player);
+		// background
+		{
+			background = new SpriteObj();
+			background->SetAll(*testBackground, { 1920 / 2, 1080 / 2 }, Origins::MC);
+			uiObjList.push_back(background);
+		}
 
-
-		playerMaxHp = new TextObj();
-		playerCurHp = new TextObj();
-		playerGold = new TextObj();
-		playerCurEnergy = new TextObj();
-		playerMaxEnergy = new TextObj();
-		playerCurDefend = new TextObj();
-
-		playerMaxHp->SetAll(font, "/   MH" + to_string(player->GetMaxHP()), 30, Color::White,
-			{ player->GetPos().x, player->GetPos().y + (player->GetSize().y / 2) });
-
-		playerCurHp->SetAll(font, "H" + to_string(player->GetCurHP()), 30, Color::White,
-			{ player->GetPos().x - 80, player->GetPos().y + (player->GetSize().y / 2) });
-
-
-		playerGold->SetAll(font, "GOLD" + to_string(player->GetCurGold()), 30, Color::White, { 100, 100 });
-
-
-		playerCurEnergy->SetAll(font, to_string(player->GetCurEnergy()), 30, Color::White,
-			{ 1000, 200 });
-
-		playerMaxEnergy->SetAll(font, "/ " + to_string(player->GetMaxEnergy()), 30, Color::White,
-			{ 1020, 200 });
-
-
-		playerCurDefend->SetAll(font, "D : " + to_string(player->GetDefend()), 30, Color::White,
-			{ 1000, 300 });
-
-		uiObjList.push_back(playerMaxHp);
-		uiObjList.push_back(playerCurHp);
-		uiObjList.push_back(playerGold);
-		uiObjList.push_back(playerCurEnergy);
-		uiObjList.push_back(playerMaxEnergy);
-		uiObjList.push_back(playerCurDefend);
+		// BackButton
+		{
+			backButton = new SpriteObj();
+			backButton->SetAll(*backButtonImage, { 50, size.y - 200.f }, Origins::MC);
+		}
 	}
 
+	// Title UI
 	{
-		test = new SpriteObj();
-		test->SetAll(*testbackground, { 1920 / 2, 1080 / 2 }, Origins::MC);
-		uiObjList.push_back(test);
+		{
+			StartButton = new SpriteObj();
+			StartButton->SetAll(*startButtonImage, {100, 800}, Origins::MC);
+			uiObjList.push_back(StartButton);
+
+			ExitButton->SetAll(*exitButtonImage, { StartButton->GetPos().x, StartButton->GetPos().y + StartButton->GetSize().y }, Origins::MC);
+			uiObjList.push_back(ExitButton);
+		}
+
+		// temp
+		{
+			startText = new TextObj();
+			startText->SetAll(font, "START", 40, Color::Blue, { 0, 0 });
+			uiObjList.push_back(startText);
+		}
 	}
+
+	// ModeSelect UI
 	{
-		cursor = new SpriteObj();
-		cursor->SetAll(*RESOURCE_MGR->GetTexture("graphics/DefenseCard.png"), {0, 0}, Origins::MC);
+		modeSelectBackground = new SpriteObj();
+		modeSelectBackground->SetAll(*normalModeBackground, { size.x / 2, size.y / 2 }, Origins::MC);
+		uiObjList.push_back(modeSelectBackground);
+
+		normalMode = new SpriteObj();
+		normalMode->SetAll(*normalModeImage, { size.x / 2, size.y / 2 }, Origins::MC);
+		uiObjList.push_back(normalMode);
+	}
+
+	// CharSelectScene
+	{
+		charSelectBackgruond = new SpriteObj();
+		charSelectBackgruond->SetAll(*ironCladBackgroundImage, { size.x / 2, size.y / 2 }, Origins::MC);
+		uiObjList.push_back(charSelectBackgruond);
+
+		charSelect = new SpriteObj();
+		charSelect->SetAll(*charSelectImage, { size.x / 2, size.y / 2 + 300 }, Origins::MC);
+		uiObjList.push_back(charSelect);
+
+		PlayButton->SetAll(*playButtonImage, { size.x - 50, backButton->GetPos().y }, Origins::MC);
+		PlayButton->SetActive(false);
+		uiObjList.push_back(PlayButton);
+	}
+
+	// Back Button
+	{
+		uiObjList.push_back(backButton);
+	}
+
+	{
+		cursor->SetAll(*RESOURCE_MGR->GetTexture("graphics/DefenseCard.png"), { 0, 0 }, Origins::MC);
 		uiObjList.push_back(cursor);
-	}
-	{
-		startText = new TextObj();
-		startText->SetAll(font, "START", 40, Color::Blue, {0, 0});
-		uiObjList.push_back(startText);
 	}
 
 	UiMgr::Init();
@@ -94,31 +120,100 @@ void UiDev1::Reset()
 void UiDev1::Update(float dt)
 {
 	UiMgr::Update(dt);
-	Vector2f worldMousePos = parentScene->
-		ScreenToUiPos((Vector2i)InputMgr::GetMousePos());
+	Vector2f worldMousePos = parentScene->ScreenToUiPos((Vector2i)InputMgr::GetMousePos());
 	cursor->SetPos(worldMousePos);
 
-	// test
-	if (Button::ButtonOnRect(*cursor, *test) == true)
+	
+	// Title UI
+	if (titleUi == true)
 	{
-		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+		SetTitleUi(true);
+		modeSelectBackground->SetActive(false);
+		backButton->SetActive(false);
+		if (Button::ButtonOnRect(*cursor, *StartButton))
 		{
-			test->SetActive(false);
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				SetTitleUi(false);
+				titleUi = false;
+				modeSelectUi = true;
+			}
+		}
+	}
+
+	// ModeSelect UI
+	if (modeSelectUi == true)
+	{
+		SetModeSelectUi(true);
+		modeSelectBackground->SetActive(true);
+		backButton->SetActive(true);
+		if (Button::ButtonOnRect(*cursor, *normalMode))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				modeSelectUi = false;
+				charSelectUi = true;
+			}
+		}
+
+		if (Button::ButtonOnRect(*cursor, *backButton))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				modeSelectUi = false;
+				titleUi = true;
+			}
 		}
 	}
 	else
-		test->SetActive(false);
-
-	if (InputMgr::GetKeyDown(Keyboard::Key::Add))
 	{
-		player->AddGold(500);
-		playerGold->SetText("GOLD " + to_string(player->GetCurGold()));
+		SetModeSelectUi(false);
 	}
 
-	//if (InputMgr::GetKeyDown(Keyboard::Key::Z))
-	//{
-	//	player->MovePlayer(dt);
-	//}
+	// CharSelect UI
+	if (charSelectUi == true)
+	{
+		modeSelectBackground->SetActive(true);
+		backButton->SetActive(true);
+		SetCharSelectUi(true);
+
+		if (Button::ButtonOnRect(*cursor, *backButton))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				charSelectUi = false;
+				modeSelectUi = true;
+			}
+		}
+		if (Button::ButtonOnRect(*cursor, *charSelect))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				StartUi = true;
+			}
+		}
+	}
+	else
+	{
+		SetCharSelectUi(false);
+	}
+
+	// Start UI
+	if (StartUi == true)
+	{
+		SetStartUi(true);
+		if (Button::ButtonOnRect(*cursor, *backButton))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				StartUi = false;
+			}
+		}
+	}
+	else
+	{
+		SetStartUi(false);
+	}
 
 	UiMgr::Update(dt);
 }
@@ -128,3 +223,42 @@ void UiDev1::Draw(RenderWindow& window)
 	window.setView(parentScene->GetUiView());
 	UiMgr::Draw(window);
 }
+
+SpriteObj* UiDev1::GetCursor()
+{
+	return cursor;
+}
+
+SpriteObj* UiDev1::GetStartButton()
+{
+	return PlayButton;
+}
+
+SpriteObj* UiDev1::GetExitButton()
+{
+	return ExitButton;
+}
+
+void UiDev1::SetTitleUi(bool set)
+{
+	StartButton->SetActive(set);
+	ExitButton->SetActive(set);
+}
+
+void UiDev1::SetModeSelectUi(bool set)
+{
+	normalMode->SetActive(set);
+}
+
+void UiDev1::SetCharSelectUi(bool set)
+{
+	charSelect->SetActive(set);
+}
+
+void UiDev1::SetStartUi(bool set)
+{
+	charSelectBackgruond->SetActive(set);
+	PlayButton->SetActive(set);
+}
+
+

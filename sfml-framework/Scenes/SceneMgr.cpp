@@ -1,9 +1,12 @@
 #include "SceneMgr.h"
 #include "SceneDev1.h"
+#include "SceneDev2_Play.h"
 
 bool SceneMgr::Init()
 {
     sceneMap[Scenes::Dev1] = new SceneDev1();
+    sceneMap[Scenes::Dev2] = new SceneDev2_Play();
+
     currScene = Scenes::Dev1;
     for (auto pair : sceneMap)
     {

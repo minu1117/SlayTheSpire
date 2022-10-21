@@ -1,6 +1,5 @@
 #pragma once
 #include "Scene.h"
-#include <list>
 
 class SpriteObj;
 class SceneDev1 : public Scene

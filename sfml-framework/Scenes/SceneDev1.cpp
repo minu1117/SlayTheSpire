@@ -1,6 +1,7 @@
 #include "SceneDev1.h"
 #include "../InlcludeHeader/SceneIncludeHeader.h"
 #include "../UI/UiDev1.h"
+#include "../Framework/Button.h"
 
 SceneDev1::SceneDev1()
 	: Scene(Scenes::Dev1)
@@ -38,8 +39,8 @@ void SceneDev1::Release()
 
 void SceneDev1::Enter()
 {
-	//FRAMEWORK->GetWindow().setMouseCursorVisible(false);
-	//FRAMEWORK->GetWindow().setMouseCursorGrabbed(true);
+	FRAMEWORK->GetWindow().setMouseCursorVisible(false);
+	FRAMEWORK->GetWindow().setMouseCursorGrabbed(true);
 	Vector2i size = FRAMEWORK->GetWindowSize();
 
 	worldView.setSize(size.x, size.y);
@@ -60,11 +61,21 @@ void SceneDev1::Update(float dt)
 {
 	Scene::Update(dt);
 
-	if (InputMgr::GetKeyDown(Keyboard::Escape))
+	if (Button::ButtonOnRect(*UiDev1::GetCursor(), *UiDev1::GetStartButton()) == true)
 	{
-		SCENE_MGR->ChangeScene(Scenes::Dev2);
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+		{
+			SCENE_MGR->ChangeScene(Scenes::Dev2);
+		}
 	}
-
+	if (Button::ButtonOnRect(*UiDev1::GetCursor(), *UiDev1::GetExitButton()) == true &&
+		UiDev1::titleUi == true)
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+		{
+			exit(1);
+		}
+	}
 	uiMgr->Update(dt);
 }
 
