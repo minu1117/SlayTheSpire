@@ -2,20 +2,24 @@
 #include "UiMgr.h"
 #include "../GameObject/TextObj.h"
 #include "../GameObject/SpriteObj.h"
-#include "../GameObject/Player.h"
 
+class Player;
 class PlayUi : public UiMgr
 {
 protected:
 	SpriteObj* cursor;
+	SpriteObj* tempBackground;
 
-	Player* player;
-	TextObj* playerMaxHp;
-	TextObj* playerCurHp;
-	TextObj* playerGold;
-	TextObj* playerCurEnergy;
-	TextObj* playerMaxEnergy;
-	TextObj* playerCurDefend;
+	// ironClad
+	Player* ironClad;
+	TextObj* ironCladMaxHp;
+	TextObj* ironCladCurHp;
+	TextObj* ironCladGold;
+	TextObj* ironCladCurEnergy;
+	TextObj* ironCladMaxEnergy;
+	TextObj* ironCladCurDefend;
+
+	// 
 
 public:
 	PlayUi(Scene* scene);

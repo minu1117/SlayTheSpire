@@ -14,6 +14,11 @@ void TextObj::Draw(RenderWindow& window)
 	window.draw(text);
 }
 
+const Vector2f& TextObj::GetPos() const
+{
+	return text.getPosition();
+}
+
 void TextObj::SetFont(Font& font)
 {
 	text.setFont(font);
@@ -48,7 +53,7 @@ const string& TextObj::GetText() const
 	return text.getString();
 }
 
-int TextObj::GetSize()
+const Vector2f& TextObj::GetSize()
 {
-	return text.getCharacterSize();
+	return text.getScale();
 }

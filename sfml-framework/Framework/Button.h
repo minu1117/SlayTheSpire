@@ -13,7 +13,7 @@ public:
 	Button() {};
 	~Button() {};
 	static bool ButtonOnRect(const SpriteObj& cursor, const SpriteObj& rect);
-	static bool ButtonOnRect(const TextObj& cursor, const TextObj& rect);
+	static bool ButtonOnRect(const SpriteObj& cursor, const TextObj& rect);
 	void ButtonClick();
 };
 

@@ -14,6 +14,7 @@ public:
 	Text& GetSfmlText() { return text; }
 
 	virtual void Draw(RenderWindow& window) override;
+	virtual const Vector2f& GetPos() const override;
 
 	void SetFont(Font& font);
 	void SetText(string str);
@@ -21,6 +22,6 @@ public:
 	void SetColor(Color color);
 	void SetOrigin(Origins origin);
 	const string& GetText() const;
-	int GetSize();
+	const Vector2f& GetSize();
 };
 

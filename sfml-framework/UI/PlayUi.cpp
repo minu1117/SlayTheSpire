@@ -2,6 +2,7 @@
 #include "../InlcludeHeader/UiIncludeHeader.h"
 #include "../Scenes/SceneDev2_Play.h"
 #include "UiDev1.h"
+#include "../GameObject/Player.h"
 
 PlayUi::PlayUi(Scene* scene)
 	: UiMgr(scene)
@@ -16,48 +17,56 @@ void PlayUi::Init()
 {
 	Font& font = *RESOURCE_MGR->GetFont("fonts/Mabinogi_Classic_TTF.ttf");
 	auto testBackground = RESOURCE_MGR->GetTexture("graphics/testbackground.png");
+	auto tempBackgroundImage = RESOURCE_MGR->GetTexture("graphics/testbackground2.png");
 	auto testButton1 = RESOURCE_MGR->GetTexture("graphics/UtilCard.png");
 	auto testButton2 = RESOURCE_MGR->GetTexture("graphics/DefenseCard.png");
 
+	Vector2f windowSize = (Vector2f)FRAMEWORK->GetWindowSize();
+
 	{
-		player = new Player(80, 80, 50, 3, 3, 0); // 파일입출력 하면 좋을듯
-		player->SetAll(*RESOURCE_MGR->GetTexture("graphics/DefenseCard.png"), { 1920 / 2, 1080 / 2 }, Origins::MC);
-		uiObjList.push_back(player);
+		// 캐릭터 생성
+		ironClad = new Player(80, 80, 99, 3, 3, 0); // 파일입출력 하면 좋을듯
+		ironClad->SetAll(*RESOURCE_MGR->GetTexture("graphics/ironcladimage.png"), 
+			{ windowSize.x / 4, windowSize.y / 3 + windowSize.y / 3 }, Origins::MC);
+		uiObjList.push_back(ironClad);
 
 
-		playerMaxHp = new TextObj();
-		playerCurHp = new TextObj();
-		playerGold = new TextObj();
-		playerCurEnergy = new TextObj();
-		playerMaxEnergy = new TextObj();
-		playerCurDefend = new TextObj();
+		// 정보 텍스트
+		ironCladMaxHp = new TextObj();
+		ironCladCurHp = new TextObj();
+		ironCladGold = new TextObj();
+		ironCladCurEnergy = new TextObj();
+		ironCladMaxEnergy = new TextObj();
+		ironCladCurDefend = new TextObj();
 
-		playerMaxHp->SetAll(font, "/   MH" + to_string(player->GetMaxHP()), 30, Color::White,
-			{ player->GetPos().x, player->GetPos().y + (player->GetSize().y / 2) });
+		Vector2f setPlayerHpPos = { ironClad->GetPos().x - 30, ironClad->GetPos().y + (ironClad->GetSize().y / 2) };
 
-		playerCurHp->SetAll(font, "H" + to_string(player->GetCurHP()), 30, Color::White,
-			{ player->GetPos().x - 80, player->GetPos().y + (player->GetSize().y / 2) });
+		ironCladCurHp->SetAll(font, "H" + to_string(ironClad->GetCurHP()), 30, Color::White, setPlayerHpPos);
+
+		ironCladMaxHp->SetAll(font, "/ MH" + to_string(ironClad->GetMaxHP()), 30, Color::White,
+			{ ironCladCurHp->GetPos().x + 55, setPlayerHpPos.y});
+
+		ironCladCurEnergy->SetAll(font, to_string(ironClad->GetCurEnergy()), 30, Color::White,
+			{ 100, windowSize.y - 100 });
+		ironCladCurEnergy->SetOrigin(Origins::MC);
+
+		ironCladMaxEnergy->SetAll(font, to_string(ironClad->GetMaxEnergy()), 30, Color::White,
+			{ ironCladCurEnergy->GetPos().x + 20, ironCladCurEnergy->GetPos().y });
+		ironCladMaxEnergy->SetOrigin(Origins::MC);
+		
+
+		ironCladGold->SetAll(font, "GOLD " + to_string(ironClad->GetCurGold()), 30, Color::White, { 50, 50 });
 
 
-		playerGold->SetAll(font, "GOLD" + to_string(player->GetCurGold()), 30, Color::White, { 100, 100 });
-
-
-		playerCurEnergy->SetAll(font, to_string(player->GetCurEnergy()), 30, Color::White,
-			{ 1000, 200 });
-
-		playerMaxEnergy->SetAll(font, "/ " + to_string(player->GetMaxEnergy()), 30, Color::White,
-			{ 1020, 200 });
-
-
-		playerCurDefend->SetAll(font, "D : " + to_string(player->GetDefend()), 30, Color::White,
-			{ 1000, 300 });
-
-		uiObjList.push_back(playerMaxHp);
-		uiObjList.push_back(playerCurHp);
-		uiObjList.push_back(playerGold);
-		uiObjList.push_back(playerCurEnergy);
-		uiObjList.push_back(playerMaxEnergy);
-		uiObjList.push_back(playerCurDefend);
+		ironCladCurDefend->SetAll(font, "D : " + to_string(ironClad->GetDefend()), 30, Color::White,
+			{ setPlayerHpPos.x, setPlayerHpPos.y + 40});
+		
+		uiObjList.push_back(ironCladMaxHp);
+		uiObjList.push_back(ironCladCurHp);
+		uiObjList.push_back(ironCladGold);
+		uiObjList.push_back(ironCladCurEnergy);
+		uiObjList.push_back(ironCladMaxEnergy);
+		uiObjList.push_back(ironCladCurDefend);
 	}
 
 	cursor = UiDev1::GetCursor();
@@ -84,14 +93,23 @@ void PlayUi::Update(float dt)
 
 	if (InputMgr::GetKeyDown(Keyboard::Key::Add))
 	{
-		player->AddGold(500);
-		playerGold->SetText("GOLD " + to_string(player->GetCurGold()));
+		ironClad->AddGold(-10);
+		ironCladGold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
 	}
 
-	//if (InputMgr::GetKeyDown(Keyboard::Key::Z))
-	//{
-	//	player->MovePlayer(dt);
-	//}
+	// test code
+	if (InputMgr::GetKeyDown(Keyboard::Key::Z))
+	{
+		ironClad->SetIsMove(true);
+		ironClad->MovePlayer(dt);
+	}
+
+	// test code
+	if (InputMgr::GetKeyDown(Keyboard::Key::X))
+	{
+		ironClad->SetCurEnergy(1);
+		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+	}
 
 	UiMgr::Update(dt);
 }

@@ -19,7 +19,11 @@ protected:
 	int minDefend = 0;
 	int defend;
 
-	float speed = 0.1f;
+	float speed;
+
+	bool isMove = false;
+	bool rightMove = true;
+	bool leftMove = false;
 
 public:
 	Player(int curH, int maxH, int curG, int curE, int maxE, int curD);
@@ -31,7 +35,9 @@ public:
 	int GetCurGold() const { return curGold; };
 
 	int GetCurEnergy() const { return curEnergy; };
-	void SetMaxEnergy(int max) { maxEnergy = max; };
+	void SetCurEnergy(int energy) 
+	{ if (curEnergy < 9) curEnergy += energy; };
+	void SetMaxEnergy(int max) { if (maxEnergy < 9) maxEnergy = max; };
 	int GetMaxEnergy() const { return maxEnergy; };
 
 	void SetDefend(int def) { defend = def; };
@@ -43,5 +49,8 @@ public:
 	void AddCurHealth(int health) { curHP += health; };
 
 	void MovePlayer(float dt);
+	void SetIsMove(bool set);
+
+	virtual void Update(float dt) override;
 };
 
