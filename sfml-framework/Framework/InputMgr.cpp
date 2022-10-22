@@ -100,6 +100,13 @@ void InputMgr::ProcessInput(Event& ev)
 		ingList.remove(ev.key.code);
 		upList.push_back(ev.key.code);
 		break;
+	
+		// test
+	case Event::EventType::MouseWheelScrolled:
+		if (ev.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel)
+			cout << "vertical" << endl;
+		else
+			cout << "unknown" << endl;
 	}
 }
 
@@ -171,3 +178,15 @@ bool InputMgr::GetMouseButtonUp(Mouse::Button key)
 	int code = key + Keyboard::KeyCount;
 	return find(upList.begin(), upList.end(), code) != upList.end();
 }
+
+//bool InputMgr::GetMouseWhellDown(Mouse::Wheel wheel)
+//{
+//	int code = wheel + Keyboard::KeyCount + Mouse::ButtonCount;
+//	return find(downList.begin(), downList.end(), code) != downList.end();
+//}
+//
+//bool InputMgr::GetMouseWhellUp(Mouse::Wheel wheel)
+//{
+//	int code = wheel + Keyboard::KeyCount + Mouse::ButtonCount;
+//	return find(upList.begin(), upList.end(), code) != upList.end();
+//}

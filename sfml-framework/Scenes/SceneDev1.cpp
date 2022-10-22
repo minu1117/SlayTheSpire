@@ -76,6 +76,7 @@ void SceneDev1::Update(float dt)
 			exit(1);
 		}
 	}
+
 	uiMgr->Update(dt);
 }
 

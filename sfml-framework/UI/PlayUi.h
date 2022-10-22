@@ -14,12 +14,40 @@ protected:
 	Player* ironClad;
 	TextObj* ironCladMaxHp;
 	TextObj* ironCladCurHp;
-	TextObj* ironCladGold;
 	TextObj* ironCladCurEnergy;
 	TextObj* ironCladMaxEnergy;
 	TextObj* ironCladCurDefend;
 
-	// 
+	// Ui
+	SpriteObj* testBorder;
+	TextObj* gold;
+	TextObj* curHp;
+	TextObj* maxHp;
+
+
+	SpriteObj* backButton;
+	SpriteObj* option;
+	SpriteObj* optionBackground;
+	SpriteObj* giveUpButton;
+
+	SpriteObj* yesButton;
+	SpriteObj* noButton;
+	SpriteObj* confirmMessage;
+	SpriteObj* confirmBackground;
+
+
+	SpriteObj* map;
+	SpriteObj* mapIcon;
+	SpriteObj* mapBackground;
+
+	// choice
+	//SpriteObj* choice1;
+	//SpriteObj* choice2;
+	//SpriteObj* choice3;
+
+	bool optionUi = false;
+	bool mapUi = false;
+	bool giveupUi = false;
 
 public:
 	PlayUi(Scene* scene);
@@ -30,5 +58,9 @@ public:
 
 	virtual void Update(float dt) override;
 	virtual void Draw(RenderWindow& window) override;
+
+	void SetOptionUi(bool set);
+	void SetMapUi(bool set);
+	void SetGiveUpUi(bool set);
 };
 

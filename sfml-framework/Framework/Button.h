@@ -14,6 +14,5 @@ public:
 	~Button() {};
 	static bool ButtonOnRect(const SpriteObj& cursor, const SpriteObj& rect);
 	static bool ButtonOnRect(const SpriteObj& cursor, const TextObj& rect);
-	void ButtonClick();
 };
 

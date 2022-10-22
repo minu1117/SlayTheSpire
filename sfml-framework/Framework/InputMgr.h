@@ -21,8 +21,6 @@ struct AxisInfo
 	float value;
 };
 
-// ����ƽ �Լ��� �̿��ؼ� Ű���� �� ���콺 �Է��� �˻��� �� �ִ� Ŭ����
-
 class InputMgr
 {
 private:
@@ -51,4 +49,6 @@ public:
 	static bool GetMouseButton(Mouse::Button key);
 	static bool GetMouseButtonUp(Mouse::Button key);
 
+	//static bool GetMouseWhellDown(Mouse::Wheel wheel);
+	//static bool GetMouseWhellUp(Mouse::Wheel wheel);
 };

@@ -30,7 +30,3 @@ bool Button::ButtonOnRect(const SpriteObj& cursor, const TextObj& rect)
 	//else
 		return false;
 }
-
-void Button::ButtonClick()
-{
-}
