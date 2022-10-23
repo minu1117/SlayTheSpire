@@ -3,6 +3,9 @@
 #include "../Scenes/SceneDev2_Play.h"
 #include "UiDev1.h"
 #include "../GameObject/Player.h"
+#include "../GameObject/Monster.h"
+
+Player* PlayUi::ironClad = new Player(80, 80, 99, 3, 3, 0, 10); // 플레이어 생성
 
 PlayUi::PlayUi(Scene* scene)
 	: UiMgr(scene)
@@ -33,12 +36,25 @@ void PlayUi::Init()
 	auto testGiveUpButton = RESOURCE_MGR->GetTexture("graphics/giveupButton.png");
 
 
-
 	//auto testChoiceImage1 = RESOURCE_MGR->GetTexture("graphics/choice1.png");
 	//auto testChoiceImage2 = RESOURCE_MGR->GetTexture("graphics/choice2.png");
 	//auto testChoiceImage3 = RESOURCE_MGR->GetTexture("graphics/choice3.png");
 
 	Vector2f windowSize = (Vector2f)FRAMEWORK->GetWindowSize();
+
+	// 몬스터 생성
+	{
+		auto easyMonster = new Monster(40, 40, 0, 10, MonsterType::Easy);
+		auto normalMonster = new Monster(60, 60, 0, 20, MonsterType::Normal);
+		auto hardMonster = new Monster(80, 80, 0, 25, MonsterType::Hard);
+
+		for (int i = 0; i < 3; i++)
+		{
+			monsters.push_back(easyMonster);
+			monsters.push_back(normalMonster);
+			monsters.push_back(hardMonster);
+		}
+	}
 
 	// 기본 백그라운드
 	{
@@ -66,7 +82,6 @@ void PlayUi::Init()
 	{
 		// 캐릭터 생성
 		{
-			ironClad = new Player(80, 80, 99, 3, 3, 0); // 파일입출력 하면 좋을듯
 			ironClad->SetAll(*RESOURCE_MGR->GetTexture("graphics/ironcladimage.png"),
 				{ windowSize.x / 4, windowSize.y / 3 + windowSize.y / 3 }, Origins::MC);
 		}
@@ -218,18 +233,18 @@ void PlayUi::Update(float dt)
 
 	if (InputMgr::GetKeyDown(Keyboard::Key::Add))
 	{
-		ironClad->AddGold(-10);
+		ironClad->AddGold(10);
 		gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
 	}
 
-	// test code
+	// test code (player attack motion)
 	if (InputMgr::GetKeyDown(Keyboard::Key::Z))
 	{
-		ironClad->SetIsMove(true);
-		ironClad->MovePlayer(dt);
+		ironClad->SetIsAttack(true);
+		ironClad->Attack(dt);
 	}
 
-	// test code
+	// test code (energy control)
 	if (InputMgr::GetKeyDown(Keyboard::Key::X))
 	{
 		ironClad->SetCurEnergy(1);
@@ -319,51 +334,44 @@ void PlayUi::Update(float dt)
 					mapUi = false;
 			}
 
-			if (mapUi == true)
-			{
-				SetMapUi(true);
-			}
-			else
-				SetMapUi(false);
+
+			mapUi == true ? SetMapUi(true) : SetMapUi(false);
 		}
 	}
 
 	// GiveUp Ui Control
 	{
-		if (Button::ButtonOnRect(*cursor, *giveUpButton))
+		if (optionUi == true)
 		{
-			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			if (Button::ButtonOnRect(*cursor, *giveUpButton))
 			{
-				giveupUi = true;
+				if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+				{
+					giveupUi = true;
+				}
 			}
-		}
 
-		if (Button::ButtonOnRect(*cursor, *yesButton))
-		{
-			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			if (Button::ButtonOnRect(*cursor, *yesButton))
 			{
-				// 죽음
+				if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+				{
+					// 죽음
+				}
+			}
+			if (Button::ButtonOnRect(*cursor, *noButton))
+			{
+				if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+				{
+					giveupUi = false;
+				}
 			}
 		}
-		if (Button::ButtonOnRect(*cursor, *noButton))
-		{
-			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
-			{
-				giveupUi = false;
-			}
-		}
-
 		if (InputMgr::GetKeyDown(Keyboard::Key::Escape) && giveupUi == true)
 		{
 			giveupUi = false;
 		}
 
-		if (giveupUi == true)
-		{
-			SetGiveUpUi(true);
-		}
-		else
-			SetGiveUpUi(false);
+		giveupUi == true ? SetGiveUpUi(true) : SetGiveUpUi(false);
 	}
 
 	UiMgr::Update(dt);
@@ -395,3 +403,17 @@ void PlayUi::SetGiveUpUi(bool set)
 	noButton->SetActive(set);
 	confirmMessage->SetActive(set);
 }
+
+Player* PlayUi::GetPlayer(PlayerType type)
+{
+	switch (type)
+	{
+	case PlayerType::IronClad:
+		return ironClad;
+		break;
+	}
+}
+
+//void PlayUi::PlayerSet()
+//{
+//}

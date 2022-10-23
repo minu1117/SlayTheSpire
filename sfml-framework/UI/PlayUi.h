@@ -2,7 +2,24 @@
 #include "UiMgr.h"
 #include "../GameObject/TextObj.h"
 #include "../GameObject/SpriteObj.h"
+#include <vector>
 
+enum class PlayerType // 캐릭터 추가 시 Get함수로 가져오기 위함
+{
+	IronClad,
+};
+
+//enum class StageType
+//{
+//	Easy,
+//	Normal,
+//	Hard,
+//	QM, // question mark map
+//	Reword,
+//	Boss,
+//};
+
+class Monster;
 class Player;
 class PlayUi : public UiMgr
 {
@@ -11,7 +28,6 @@ protected:
 	SpriteObj* tempBackground;
 
 	// ironClad
-	Player* ironClad;
 	TextObj* ironCladMaxHp;
 	TextObj* ironCladCurHp;
 	TextObj* ironCladCurEnergy;
@@ -49,6 +65,10 @@ protected:
 	bool mapUi = false;
 	bool giveupUi = false;
 
+	//int playerSelect = 0;
+
+	vector<Monster*> monsters;
+
 public:
 	PlayUi(Scene* scene);
 	~PlayUi();
@@ -62,5 +82,15 @@ public:
 	void SetOptionUi(bool set);
 	void SetMapUi(bool set);
 	void SetGiveUpUi(bool set);
+
+	void EasyMonsterMap();
+	void NormalMonsterMap();
+	void HardMonsterMap();
+	void DeleteMonster();
+
+	static Player* ironClad;
+	static Player* GetPlayer(PlayerType type);
+
+	//void PlayerSet();
 };
 

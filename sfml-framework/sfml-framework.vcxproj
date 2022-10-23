@@ -161,6 +161,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="GameObject\Object.cpp" />
     <ClCompile Include="GameObject\Player.cpp" />
+    <ClCompile Include="GameObject\Monster.cpp" />
     <ClCompile Include="Scenes\SceneDev2_Play.cpp" />
     <ClCompile Include="Ui\PlayUi.cpp" />
     <ClCompile Include="Scenes\SceneDev1.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="GameObject\VertexArrayObj.h" />
     <ClInclude Include="InlcludeHeader\SceneIncludeHeader.h" />
     <ClInclude Include="GameObject\Player.h" />
+    <ClInclude Include="GameObject\Monster.h" />
     <ClInclude Include="Scenes\SceneDev2_Play.h" />
     <ClInclude Include="Ui\PlayUi.h" />
     <ClInclude Include="Scenes\SceneDev1.h" />

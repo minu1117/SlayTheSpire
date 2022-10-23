@@ -5,7 +5,6 @@ class SceneDev2_Play : public Scene
 {
 protected:
 
-
 public:
 	SceneDev2_Play();
 	virtual ~SceneDev2_Play();

@@ -1,8 +1,6 @@
 #pragma once
 #include "SpriteObj.h"
 
-class Scene;
-class UiMgr;
 class Player : public SpriteObj
 {
 protected:
@@ -19,18 +17,23 @@ protected:
 	int minDefend = 0;
 	int defend;
 
+	float attackDamage;
+
 	float speed;
 
-	bool isMove = false;
+	bool isAttack = false;
 	bool rightMove = true;
 	bool leftMove = false;
 
 public:
-	Player(int curH, int maxH, int curG, int curE, int maxE, int curD);
+	Player(int curH, int maxH, int curG, int curE, int maxE, int curD, float dmg);
 	~Player();
 
 	int GetCurHP() const { return curHP; };
 	int GetMaxHP() const { return maxHP; };
+
+	void SetCurHP(float hp) { curHP = hp; };
+	void SetMaxHP(float hp) { maxHP = hp; };
 
 	int GetCurGold() const { return curGold; };
 
@@ -48,8 +51,11 @@ public:
 	void AddMaxHealth(int health) { maxHP += health; };
 	void AddCurHealth(int health) { curHP += health; };
 
-	void MovePlayer(float dt);
-	void SetIsMove(bool set);
+	void AddDamage(float dmg) { attackDamage += dmg; };
+	float GetDamage() const { return attackDamage; };
+
+	void SetIsAttack(bool set);
+	void Attack(float dt);
 
 	virtual void Update(float dt) override;
 };

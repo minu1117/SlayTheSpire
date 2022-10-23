@@ -1,9 +1,8 @@
 #include "Player.h"
-#include "../UI/UiMgr.h"
 #include "../Framework/Framework.h"
 
-Player::Player(int curH, int maxH, int curG, int curE, int maxE, int curD)
-	: curHP(curH), maxHP(maxH), curGold(curG), curEnergy(curE), maxEnergy(maxE), defend(curD), speed(700.f)
+Player::Player(int curH, int maxH, int curG, int curE, int maxE, int curD, float dmg)
+	: curHP(curH), maxHP(maxH), curGold(curG), curEnergy(curE), maxEnergy(maxE), defend(curD), speed(700.f), attackDamage(dmg)
 {
 
 }
@@ -12,11 +11,11 @@ Player::~Player()
 {
 }
 
-void Player::MovePlayer(float dt)
+void Player::Attack(float dt)
 {
 	Vector2i size = FRAMEWORK->GetWindowSize();
 
-	if (isMove == true)
+	if (isAttack == true)
 	{
 		if (rightMove == true)
 		{
@@ -34,19 +33,18 @@ void Player::MovePlayer(float dt)
 			{
 				rightMove = true;
 				leftMove = false;
-				isMove = false;
+				isAttack = false;
 			}
 		}
 	}
 }
 
-void Player::SetIsMove(bool set)
+void Player::SetIsAttack(bool set)
 {
-	isMove = set;
+	isAttack = set;
 }
 
 void Player::Update(float dt)
 {
-	MovePlayer(dt);
 	SpriteObj::Update(dt);
 }
