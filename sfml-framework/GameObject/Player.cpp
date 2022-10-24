@@ -46,5 +46,6 @@ void Player::SetIsAttack(bool set)
 
 void Player::Update(float dt)
 {
+	Attack(dt);
 	SpriteObj::Update(dt);
 }

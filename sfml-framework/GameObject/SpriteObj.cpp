@@ -64,3 +64,8 @@ void SpriteObj::SetAll(Texture& tex, const Vector2f& pos, Origins origin)
 	Utils::SetOrigin(sprite, origin);
 }
 
+void SpriteObj::SetScale(float x, float y)
+{
+	sprite.setScale(x, y);
+}
+

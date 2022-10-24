@@ -35,8 +35,8 @@ void Monster::Attack(float dt)
 	{
 		if (leftMove == true)
 		{
-			SetPos({ GetPos().x + speed * dt , GetPos().y });
-			if (GetPos().x > (float)size.x * 0.6f)
+			SetPos({ GetPos().x + -speed * dt , GetPos().y });
+			if (GetPos().x < (float)size.x / 1.7)
 			{
 				rightMove = true;
 				leftMove = false;
@@ -44,8 +44,8 @@ void Monster::Attack(float dt)
 		}
 		if (rightMove == true)
 		{
-			SetPos({ GetPos().x + -speed * dt , GetPos().y });
-			if (GetPos().x > (float)size.x * 0.75f)
+			SetPos({ GetPos().x + speed * dt , GetPos().y });
+			if (GetPos().x > (float)size.x / 1.5)
 			{
 				rightMove = false;
 				leftMove = true;
@@ -53,4 +53,10 @@ void Monster::Attack(float dt)
 			}
 		}
 	}
+}
+
+void Monster::Update(float dt)
+{
+	Attack(dt);
+	SpriteObj::Update(dt);
 }

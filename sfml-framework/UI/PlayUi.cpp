@@ -42,18 +42,17 @@ void PlayUi::Init()
 
 	Vector2f windowSize = (Vector2f)FRAMEWORK->GetWindowSize();
 
-	// 몬스터 생성
+	// test Monster
 	{
-		auto easyMonster = new Monster(40, 40, 0, 10, MonsterType::Easy);
-		auto normalMonster = new Monster(60, 60, 0, 20, MonsterType::Normal);
-		auto hardMonster = new Monster(80, 80, 0, 25, MonsterType::Hard);
+		monster = new Monster(40, 40, 0, 10, MonsterType::Easy);
+		monster->SetAll(*RESOURCE_MGR->GetTexture("graphics/ironcladimage.png"),
+				{ windowSize.x / 1.5f, windowSize.y / 3 + windowSize.y / 3 }, Origins::MC);
+		monster->SetScale(-1, 1);
 
-		for (int i = 0; i < 3; i++)
-		{
-			monsters.push_back(easyMonster);
-			monsters.push_back(normalMonster);
-			monsters.push_back(hardMonster);
-		}
+		monsterDefend = new TextObj();
+		monsterDefend->SetAll(font, to_string(monster->GetDefend()), 30, Color::White, 
+			{ monster->GetPos().x, monster->GetPos().y + 100});
+		monsterDefend->SetOrigin(Origins::MC);
 	}
 
 	// 기본 백그라운드
@@ -115,6 +114,8 @@ void PlayUi::Init()
 		}
 
 
+		uiObjList.push_back(monster);
+		uiObjList.push_back(monsterDefend);
 		uiObjList.push_back(ironClad);
 		uiObjList.push_back(ironCladMaxHp);
 		uiObjList.push_back(ironCladCurHp);
@@ -230,6 +231,13 @@ void PlayUi::Update(float dt)
 	UiMgr::Update(dt);
 	Vector2f worldMousePos = parentScene->ScreenToUiPos((Vector2i)InputMgr::GetMousePos());
 	cursor->SetPos(worldMousePos);
+
+	// monster patton test
+	if (InputMgr::GetKeyDown(Keyboard::Key::A))
+	{
+		monster->Patton(Utils::RandomRange(0, 2), dt);
+		monsterDefend->SetText(to_string(monster->GetDefend()));
+	}
 
 	if (InputMgr::GetKeyDown(Keyboard::Key::Add))
 	{

@@ -9,16 +9,6 @@ enum class PlayerType // 캐릭터 추가 시 Get함수로 가져오기 위함
 	IronClad,
 };
 
-//enum class StageType
-//{
-//	Easy,
-//	Normal,
-//	Hard,
-//	QM, // question mark map
-//	Reword,
-//	Boss,
-//};
-
 class Monster;
 class Player;
 class PlayUi : public UiMgr
@@ -67,7 +57,9 @@ protected:
 
 	//int playerSelect = 0;
 
-	vector<Monster*> monsters;
+	//vector<Monster*> monsters;
+	Monster* monster;
+	TextObj* monsterDefend;
 
 public:
 	PlayUi(Scene* scene);
@@ -82,11 +74,6 @@ public:
 	void SetOptionUi(bool set);
 	void SetMapUi(bool set);
 	void SetGiveUpUi(bool set);
-
-	void EasyMonsterMap();
-	void NormalMonsterMap();
-	void HardMonsterMap();
-	void DeleteMonster();
 
 	static Player* ironClad;
 	static Player* GetPlayer(PlayerType type);

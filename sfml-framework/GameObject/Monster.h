@@ -57,6 +57,6 @@ public:
 	void Attack(float dt);
 
 
-	virtual void Update(float dt) override { SpriteObj::Update(dt); };
+	virtual void Update(float dt) override;
 };
 
