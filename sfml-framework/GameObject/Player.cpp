@@ -13,6 +13,9 @@ Player::~Player()
 
 void Player::Attack(float dt)
 {
+	if (isAlive == false)
+		return;
+
 	Vector2i size = FRAMEWORK->GetWindowSize();
 
 	if (isAttack == true)

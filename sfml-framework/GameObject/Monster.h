@@ -1,7 +1,7 @@
 #pragma once
 #include "SpriteObj.h"
 
-enum class Pattern
+enum class MonsterPattern
 {
 	Attack,
 	Defence,
@@ -31,8 +31,11 @@ protected:
 	bool isAttack = false;
 	bool rightMove = false;
 	bool leftMove = true;
+	bool isAlive = true;
+
 
 	MonsterType type;
+	MonsterPattern patternType;
 
 public:
 	Monster(int curH, int maxH, int defend, float damage, MonsterType t);
@@ -50,9 +53,13 @@ public:
 	void SetDamage(float dmg) { damage = dmg; };
 	float GetDamage() const { return damage; };
 	
-	MonsterType GetType() const { return type; };
+	bool GetAlive() const { return isAlive; };
+	void SetAlive(bool set) { isAlive = set; };
 
-	void Patton(int pattern, float dt);
+	MonsterType GetType() const { return type; };
+	MonsterPattern GetPattern() const { return  patternType; };
+
+	void Pattern(int pattern, float dt);
 	void SetIsAttack(bool set);
 	void Attack(float dt);
 
