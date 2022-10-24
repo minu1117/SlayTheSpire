@@ -24,6 +24,5 @@ public:
 	virtual void SetPos(const Vector2f& pos) override;
 	void SetAll(Texture& tex, const Vector2f& pos, Origins origin);
 	void SetScale(float x, float y);
-
 };
 

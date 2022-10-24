@@ -118,12 +118,12 @@ void PlayUi::Init()
 			ironCladCurDefend = new TextObj();
 			ironCladDamage = new TextObj();
 
-			Vector2f setPlayerUiPos = { ironClad->GetPos().x - 30, ironClad->GetPos().y + (ironClad->GetSize().y / 2) };
+			Vector2f setPlayerUiPos = { ironClad->GetPos().x - 10, ironClad->GetPos().y + (ironClad->GetSize().y / 2) };
 
-			ironCladCurHp->SetAll(font, "H" + to_string(ironClad->GetCurHP()), 30, Color::White, setPlayerUiPos);
+			ironCladCurHp->SetAll(font, to_string(ironClad->GetCurHP()), 30, Color::White, setPlayerUiPos);
 
-			ironCladMaxHp->SetAll(font, "/ MH" + to_string(ironClad->GetMaxHP()), 30, Color::White,
-				{ ironCladCurHp->GetPos().x + 55, setPlayerUiPos.y });
+			ironCladMaxHp->SetAll(font, "/ " + to_string(ironClad->GetMaxHP()), 30, Color::White,
+				{ ironCladCurHp->GetPos().x + 40, setPlayerUiPos.y });
 
 			ironCladCurEnergy->SetAll(font, to_string(ironClad->GetCurEnergy()), 30, Color::White,
 				{ 100, windowSize.y - 100 });
@@ -138,8 +138,20 @@ void PlayUi::Init()
 
 			ironCladDamage->SetAll(font, "A : " + to_string((int)ironClad->GetDamage()), 30, Color::White,
 				{ setPlayerUiPos.x, setPlayerUiPos.y + 80});
-		}
 
+
+			// Hp bar
+			{
+				playerCurHpBar = new SpriteObj();
+				playerMaxHpBar = new SpriteObj();
+
+				
+				playerCurHpBar->SetAll(*RESOURCE_MGR->GetTexture("graphics/CurHpBar.png"),
+					{ setPlayerUiPos.x - 57, setPlayerUiPos.y + 15}, Origins::ML);
+				playerMaxHpBar->SetAll(*RESOURCE_MGR->GetTexture("graphics/MaxHpBar.png"),
+					{ setPlayerUiPos.x - 57, setPlayerUiPos.y + 15 }, Origins::ML);
+			}
+		}
 
 		uiObjList.push_back(monster);
 		uiObjList.push_back(monsterDefend);
@@ -147,6 +159,11 @@ void PlayUi::Init()
 		uiObjList.push_back(monsterMaxHp);
 		uiObjList.push_back(monsterPattern);
 		uiObjList.push_back(monsterDamage);
+
+
+		//temp
+		uiObjList.push_back(playerMaxHpBar);
+		uiObjList.push_back(playerCurHpBar);
 
 
 		uiObjList.push_back(ironClad);
@@ -266,10 +283,13 @@ void PlayUi::Update(float dt)
 	Vector2f worldMousePos = parentScene->ScreenToUiPos((Vector2i)InputMgr::GetMousePos());
 	cursor->SetPos(worldMousePos);
 
+	playerCurHpBar->SetScale(ironClad->GetCurHP() * 0.01f, 1);
+	playerMaxHpBar->SetScale(ironClad->GetMaxHP() * 0.01f, 1);
+
 	if (ironClad->GetCurHP() <= 0)
 	{
 		ironClad->SetCurHP(0);
-		ironCladCurHp->SetText("H" + to_string(ironClad->GetCurHP()));
+		ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
 		curHp->SetText(to_string(ironClad->GetCurHP()));
 		ironClad->SetAlive(false);
 	}
@@ -472,13 +492,13 @@ void PlayUi::MonsterAttack()
 			ironClad->SetDefend(0);
 			ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
 			ironClad->SetCurHP(ironClad->GetCurHP() - piercingDamage);
-			ironCladCurHp->SetText("H" + to_string(ironClad->GetCurHP()));
+			ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
 		}
 	}
 	else
 	{
 		ironClad->SetCurHP(ironClad->GetCurHP() - monster->GetDamage());
-		ironCladCurHp->SetText("H" + to_string(ironClad->GetCurHP()));
+		ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
 		curHp->SetText(to_string(ironClad->GetCurHP()));
 	}
 }

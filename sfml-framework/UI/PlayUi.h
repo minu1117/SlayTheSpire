@@ -70,6 +70,9 @@ protected:
 
 	float monsterPatternDelay;
 
+	SpriteObj* playerCurHpBar;
+	SpriteObj* playerMaxHpBar;
+
 public:
 	PlayUi(Scene* scene);
 	~PlayUi();
