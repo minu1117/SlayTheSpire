@@ -11,16 +11,22 @@ void Monster::Pattern(int pattern, float dt)
 {
 	switch (pattern)
 	{
-	case (int)MonsterPattern::Attack:
+	case 0:
 		SetIsAttack(true);
 		Attack(dt);
+		patternType = MonsterPattern::Attack;
 		break;
-	case (int)MonsterPattern::Defence:
+	case 1:
+		SetIsAttack(true);
+		Attack(dt);
+		patternType = MonsterPattern::Attack;
+		break;
+	case 2:
 		float df = Utils::RandomRange(10, 15);
 		SetDefend(defend + df);
+		patternType = MonsterPattern::Defence;
 		break;
 	}
-	patternType = (MonsterPattern)pattern;
 }
 
 void Monster::SetIsAttack(bool set)

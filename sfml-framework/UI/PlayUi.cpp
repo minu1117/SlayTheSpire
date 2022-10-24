@@ -270,6 +270,7 @@ void PlayUi::Update(float dt)
 	{
 		ironClad->SetCurHP(0);
 		ironCladCurHp->SetText("H" + to_string(ironClad->GetCurHP()));
+		curHp->SetText(to_string(ironClad->GetCurHP()));
 		ironClad->SetAlive(false);
 	}
 	if (monster->GetCurHp() <= 0)
@@ -279,8 +280,7 @@ void PlayUi::Update(float dt)
 
 	monsterPatternDelay -= dt;
 
-	// 몬스터 턴일때 해야함
-	if (InputMgr::GetKeyDown(Keyboard::Key::Tab)) // 턴 넘기기 키
+	if (InputMgr::GetKeyDown(Keyboard::Key::Tab) && isPlayerTern == true) // 턴 넘기기 버튼으로 바꾸기
 	{
 		isMonsterTern = true;
 		monsterRandomPatternSetting = false;
@@ -288,9 +288,14 @@ void PlayUi::Update(float dt)
 		monsterPatternDelay = 1.f;
 	}
 
-	SetNextMonsterAction();
-	MonsterAction(dt);
-	PlayerTern(dt);
+	if (isPlayerTern == true && isMonsterTern == false && ironClad->GetCurEnergy() > 0)
+		PlayerTern(dt);
+
+	if (monsterPatternDelay <= 0.f && isPlayerTern == false)
+		MonsterAction(dt);
+
+	if (isMonsterTern == true && monsterRandomPatternSetting == true)
+		SetNextMonsterAction();
 
 	if (InputMgr::GetKeyDown(Keyboard::Key::Add))
 	{
@@ -474,6 +479,7 @@ void PlayUi::MonsterAttack()
 	{
 		ironClad->SetCurHP(ironClad->GetCurHP() - monster->GetDamage());
 		ironCladCurHp->SetText("H" + to_string(ironClad->GetCurHP()));
+		curHp->SetText(to_string(ironClad->GetCurHP()));
 	}
 }
 
@@ -531,75 +537,65 @@ Player* PlayUi::GetPlayer(PlayerType type)
 void PlayUi::PlayerTern(float dt)
 {
 	// player tern
-	if (isPlayerTern == true && isMonsterTern == false && ironClad->GetCurEnergy() > 0)
+	int defend = ironClad->GetDefend();
+	int energy = ironClad->GetCurEnergy();
+
+	if (InputMgr::GetKeyDown(Keyboard::Key::Z))
 	{
-		int defend = ironClad->GetDefend();
-		int energy = ironClad->GetCurEnergy();
+		PlayerAttack(dt);
+		ironClad->SetCurEnergy(energy -= 1);
+		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+	}
 
-		if (InputMgr::GetKeyDown(Keyboard::Key::Z))
-		{
-			PlayerAttack(dt);
-			ironClad->SetCurEnergy(energy -= 1);
-			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
-		}
-
-		if (InputMgr::GetKeyDown(Keyboard::Key::X))
-		{
-			ironClad->SetDefend(defend += 6);
-			ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
-			ironClad->SetCurEnergy(energy -= 1);
-			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
-		}
+	if (InputMgr::GetKeyDown(Keyboard::Key::X))
+	{
+		ironClad->SetDefend(defend += 5);
+		ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+		ironClad->SetCurEnergy(energy -= 1);
+		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 	}
 }
 
 void PlayUi::SetNextMonsterAction()
 {
-	if (isMonsterTern == true && monsterRandomPatternSetting == true)
+	randomMonsterPattern = Utils::RandomRange(0, 3);
+	cout << randomMonsterPattern << endl;
+	if (randomMonsterPattern <= 1)
 	{
-		randomMonsterPattern = Utils::RandomRange(0, 2);
-
-		if (randomMonsterPattern == 0)
-		{
-			monsterPattern->SetText("ATTACK");
-			int damage = Utils::RandomRange(8, 15);
-			monsterDamage->SetText("A : " + to_string((int)monster->GetDamage()));
-			monsterDamage->SetActive(true);
-			monster->SetDamage(damage);
-		}
-		else
-		{
-			monsterPattern->SetText("DEFENCE");
-			monsterDamage->SetActive(false);
-		}
-
-		monsterRandomPatternSetting = false;
-		isMonsterTern = false;
+		int setDamage = Utils::RandomRange(8, 15);
+		monster->SetDamage(setDamage);
+		monsterPattern->SetText("ATTACK");
+		monsterDamage->SetText("A : " + to_string((int)monster->GetDamage()));
+		monsterDamage->SetActive(true);
 	}
+	else
+	{
+		monsterPattern->SetText("DEFENCE");
+		monsterDamage->SetActive(false);
+	}
+
+	monsterRandomPatternSetting = false;
+	isMonsterTern = false;
 }
 
 void PlayUi::MonsterAction(float dt)
 {
-	if (monsterPatternDelay <= 0.f && isPlayerTern == false)
-	{
-		monster->Pattern(randomMonsterPattern, dt);
+	monster->Pattern(randomMonsterPattern, dt);
+	if (monster->GetPattern() == MonsterPattern::Attack)
+		MonsterAttack();
 
-		monsterDefend->SetText("D : " + to_string(monster->GetDefend()));
+	monsterDefend->SetText("D : " + to_string(monster->GetDefend()));
 
-		if (monster->GetPattern() == MonsterPattern::Attack)
-			MonsterAttack();
+	ironClad->SetCurEnergy(3);
+	ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 
-		ironClad->SetCurEnergy(3);
-		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+	isPlayerTern = true;
+	monsterRandomPatternSetting = true;
 
-		isPlayerTern = true;
-		monsterRandomPatternSetting = true;
-
-		// 일정 시간 뒤에 방어막 사라지게 하려면 좀 더 귀찮아질듯...
-		// 지금은 그냥 사라짐
-		ironClad->SetDefend(0);
-		ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
-	}
+	// 일정 시간 뒤에 방어막 사라지게 하려면 좀 더 귀찮아질듯...
+	// 지금은 그냥 사라짐
+	ironClad->SetDefend(0);
+	ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
 }
 
 Monster* PlayUi::GetMonster()
