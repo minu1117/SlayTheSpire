@@ -1,9 +1,13 @@
 #pragma once
 #include "Scene.h"
 
+//class Player;
+//class Monster;
 class SceneDev2_Play : public Scene
 {
 protected:
+	//Player* ironClad;
+	//Monster* monster;
 
 public:
 	SceneDev2_Play();

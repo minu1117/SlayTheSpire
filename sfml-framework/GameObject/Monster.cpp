@@ -7,19 +7,20 @@ Monster::Monster(int curH, int maxH, int defend, float damage, MonsterType t)
 {
 }
 
-void Monster::Patton(int pattern, float dt)
+void Monster::Pattern(int pattern, float dt)
 {
 	switch (pattern)
 	{
-	case (int)Pattern::Attack:
+	case (int)MonsterPattern::Attack:
 		SetIsAttack(true);
 		Attack(dt);
 		break;
-	case (int)Pattern::Defence:
-		float df = Utils::RandomRange(5, 10);
+	case (int)MonsterPattern::Defence:
+		float df = Utils::RandomRange(10, 15);
 		SetDefend(defend + df);
 		break;
 	}
+	patternType = (MonsterPattern)pattern;
 }
 
 void Monster::SetIsAttack(bool set)

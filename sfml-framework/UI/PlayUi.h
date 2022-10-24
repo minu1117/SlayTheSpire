@@ -23,6 +23,7 @@ protected:
 	TextObj* ironCladCurEnergy;
 	TextObj* ironCladMaxEnergy;
 	TextObj* ironCladCurDefend;
+	TextObj* ironCladDamage;
 
 	// Ui
 	SpriteObj* testBorder;
@@ -30,18 +31,19 @@ protected:
 	TextObj* curHp;
 	TextObj* maxHp;
 
-
+	// option
 	SpriteObj* backButton;
 	SpriteObj* option;
 	SpriteObj* optionBackground;
 	SpriteObj* giveUpButton;
 
+	// giveup
 	SpriteObj* yesButton;
 	SpriteObj* noButton;
 	SpriteObj* confirmMessage;
 	SpriteObj* confirmBackground;
 
-
+	// map
 	SpriteObj* map;
 	SpriteObj* mapIcon;
 	SpriteObj* mapBackground;
@@ -55,11 +57,18 @@ protected:
 	bool mapUi = false;
 	bool giveupUi = false;
 
-	//int playerSelect = 0;
-
-	//vector<Monster*> monsters;
-	Monster* monster;
+	// Monster
 	TextObj* monsterDefend;
+	TextObj* monsterMaxHp;
+	TextObj* monsterCurHp;
+	TextObj* monsterDamage;
+	TextObj* monsterPattern;
+	bool monsterRandomPatternSetting = true;
+	bool isMonsterTern = true;
+	bool isPlayerTern = true;
+	int randomMonsterPattern;
+
+	float monsterPatternDelay;
 
 public:
 	PlayUi(Scene* scene);
@@ -75,8 +84,20 @@ public:
 	void SetMapUi(bool set);
 	void SetGiveUpUi(bool set);
 
+	void MonsterAttack();
+	void PlayerAttack(float dt);
+
+	void MonsterSet(bool set);
+
+	void SetNextMonsterAction();
+	void PlayerTern(float dt);
+	void MonsterAction(float dt);
+
 	static Player* ironClad;
 	static Player* GetPlayer(PlayerType type);
+
+	static Monster* monster;
+	static Monster* GetMonster();
 
 	//void PlayerSet();
 };

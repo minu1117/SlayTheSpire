@@ -2,6 +2,7 @@
 #include "../InlcludeHeader/SceneIncludeHeader.h"
 #include "../Framework/Button.h"
 #include "../UI/PlayUi.h"
+//#include "../GameObject/Monster.h"
 
 SceneDev2_Play::SceneDev2_Play()
 	: Scene(Scenes::Dev2)
