@@ -36,7 +36,7 @@ void Monster::Attack(float dt)
 		if (leftMove == true)
 		{
 			SetPos({ GetPos().x + -speed * dt , GetPos().y });
-			if (GetPos().x < (float)size.x / 1.7)
+			if (GetPos().x < (float)size.x / 1.6)
 			{
 				rightMove = true;
 				leftMove = false;
