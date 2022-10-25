@@ -2,12 +2,8 @@
 #include "UiMgr.h"
 #include "../GameObject/TextObj.h"
 #include "../GameObject/SpriteObj.h"
+#include "../GameObject/Player.h"
 #include <vector>
-
-enum class PlayerType
-{
-	IronClad,
-};
 
 enum class Stage
 {
@@ -20,7 +16,6 @@ enum class Stage
 };
 
 class Monster;
-class Player;
 class PlayUi : public UiMgr
 {
 protected:
@@ -66,6 +61,18 @@ protected:
 	SpriteObj* map;
 	SpriteObj* mapIcon;
 	SpriteObj* mapBackground;
+
+	SpriteObj* monsterMapIcon;
+	SpriteObj* rewordMapIcon;
+	SpriteObj* questionMapIcon;
+	SpriteObj* shopMapIcon;
+
+	int monsterMapOrder;
+	int rewordMapOrder;
+	int questionMapOrder;
+	int shopMapOrder;
+
+	int choiceOrder = 0;
 
 	// choice
 	//SpriteObj* choice1;
@@ -137,6 +144,12 @@ public:
 
 	void SetStage(Stage s) { stage = s; };
 	const Stage& GetStage() { return stage; };
+
+	void SetMonsterStage(float dt);
+
+	void EnterTheStage();
+
+	void QuestionStage();
 
 	static Player* ironClad;
 	static Player* GetPlayer(PlayerType type);

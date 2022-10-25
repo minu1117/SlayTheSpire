@@ -56,6 +56,8 @@ public:
 	bool GetAlive() const { return isAlive; };
 	void SetAlive(bool set) { isAlive = set; };
 
+	void SetMonster(int curH, int maxH, int defend, float damage, MonsterType t);
+
 	MonsterType GetType() const { return type; };
 	MonsterPattern GetPattern() const { return  patternType; };
 

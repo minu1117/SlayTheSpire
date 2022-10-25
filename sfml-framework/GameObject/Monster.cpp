@@ -7,6 +7,16 @@ Monster::Monster(int curH, int maxH, int defend, float damage, MonsterType t)
 {
 }
 
+void Monster::SetMonster(int curH, int maxH, int defend, float damage, MonsterType t)
+{
+	curHP = curH;
+	maxHP = maxH;
+	this->defend = defend;
+	this->damage = damage;
+	speed = 700.f;
+	type = t;
+}
+
 void Monster::Pattern(int pattern, float dt)
 {
 	switch (pattern)

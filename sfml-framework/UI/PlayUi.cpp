@@ -2,10 +2,9 @@
 #include "../InlcludeHeader/UiIncludeHeader.h"
 #include "../Scenes/SceneDev2_Play.h"
 #include "UiDev1.h"
-#include "../GameObject/Player.h"
 #include "../GameObject/Monster.h"
 
-Player* PlayUi::ironClad = new Player(80, 80, 99, 3, 3, 0, 5); // �÷��̾� ����
+Player* PlayUi::ironClad = new Player(80, 80, 99, 3, 3, 0, 5, PlayerType::IronClad); // �÷��̾� ����
 vector<Monster*> PlayUi::monster;
 
 PlayUi::PlayUi(Scene* scene)
@@ -60,6 +59,10 @@ void PlayUi::Init()
 	// map
 	uiObjList.push_back(mapBackground);
 	uiObjList.push_back(map);
+	uiObjList.push_back(monsterMapIcon);
+	uiObjList.push_back(rewordMapIcon);
+	uiObjList.push_back(questionMapIcon);
+	uiObjList.push_back(shopMapIcon);
 
 	// option
 	uiObjList.push_back(optionBackground);
@@ -103,51 +106,19 @@ void PlayUi::Update(float dt)
 
 	// Player / Monster HP, HP Bar Control
 	HpControl();
+	EnterTheStage();
 
 	if (stage == Stage::Start)
 	{
 		MonsterSet(monster, false);
 		SetActionUi(false);
-		if (InputMgr::GetKeyDown(Keyboard::Key::Enter))
-			stage = Stage::Monster;
+		if (InputMgr::GetKeyDown(Keyboard::Key::Enter)) // 선택
+			stage = Stage::Map;
 	}
 
 	if (stage == Stage::Monster)
 	{
-		SetActionUi(true);
-		MonsterSet(monster, true);
-
-		this->attackCount->SetText("COUNT : " + to_string(ironClad->GetAttackCount()));
-		this->defendCount->SetText("COUNT : " + to_string(ironClad->GetDefendCount()));
-		this->attackCount->SetOrigin(Origins::MC);
-		this->defendCount->SetOrigin(Origins::MC);
-
-		monsterPatternDelay -= dt;
-
-		// Tern Pass
-		if (Button::ButtonOnRect(*cursor, *ternPassButton) && isPlayerTern == true && monster[0]->GetAlive() == true)
-		{
-			if (InputMgr::GetMouseButtonUp(Mouse::Left))
-				SetMonsterTern();
-		}
-
-		// Monster Tern Control
-		if (monsterPatternDelay <= 0.f && isPlayerTern == false)
-			MonsterAction(dt);
-
-		// Monster Pattern Set
-		if (isMonsterTern == true && monsterRandomPatternSetting == true)
-			SetNextMonsterAction();
-
-		// player Tern Control
-		if (isPlayerTern == true && isMonsterTern == false && ironClad->GetCurEnergy() > 0)
-			PlayerTern(dt);
-
-		if (monsterCount == 0)
-		{
-			//isStageClear = true;
-			SetClearUi(true);
-		}
+		SetMonsterStage(dt);
 	}
 	else
 		SetClearUi(false);
@@ -166,7 +137,22 @@ void PlayUi::Update(float dt)
 		MonsterSet(monster, false);
 		SetActionUi(false);
 
-		MapUiControl();
+		mapUi = true;
+	}
+
+	if (stage == Stage::Question)
+	{
+		QuestionStage();
+	}
+
+	if (stage == Stage::Reword)
+	{
+
+	}
+
+	if (stage == Stage::Shop)
+	{
+
 	}
 
 	// Option Ui Control
@@ -215,6 +201,10 @@ void PlayUi::SetMapUi(bool set)
 {
 	map->SetActive(set);
 	mapBackground->SetActive(set);
+	monsterMapIcon->SetActive(set);
+	rewordMapIcon->SetActive(set);
+	questionMapIcon->SetActive(set);
+	shopMapIcon->SetActive(set);
 }
 
 void PlayUi::SetGiveUpUi(bool set)
@@ -390,8 +380,24 @@ void PlayUi::SetNextMonsterAction()
 	randomMonsterPattern = Utils::RandomRange(0, 3);
 	if (randomMonsterPattern <= 1)
 	{
-		int setDamage = Utils::RandomRange(8, 15);
-		monster[0]->SetDamage(setDamage);
+		int setDamage = 0;
+
+		switch (monster[0]->GetType())
+		{
+		case MonsterType::Easy:
+			setDamage = Utils::RandomRange(4, 8);
+			monster[0]->SetDamage(setDamage);
+			break;
+		case MonsterType::Normal:
+			setDamage = Utils::RandomRange(8, 15);
+			monster[0]->SetDamage(setDamage);
+			break;
+		case MonsterType::Hard:
+			setDamage = Utils::RandomRange(10, 23);
+			monster[0]->SetDamage(setDamage);
+			break;
+		}
+
 		monsterPattern->SetText("ATTACK");
 		monsterDamage->SetText("A : " + to_string((int)monster[0]->GetDamage()));
 		monsterDamage->SetActive(true);
@@ -479,30 +485,33 @@ void PlayUi::OptionUiControl()
 
 void PlayUi::MapUiControl()
 {
-	if (Button::ButtonOnRect(*cursor, *mapIcon))
+	if (stage != Stage::Map)
 	{
-		if (mapUi == true)
+		if (Button::ButtonOnRect(*cursor, *mapIcon))
 		{
-			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			if (mapUi == true)
 			{
-				mapUi = false;
+				if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+				{
+					mapUi = false;
+				}
+			}
+			else
+			{
+				if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+				{
+					mapUi = true;
+				}
 			}
 		}
-		else
-		{
-			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
-			{
-				mapUi = true;
-			}
-		}
-	}
 
-	if (InputMgr::GetKeyDown(Keyboard::Key::M))
-	{
-		if (mapUi == false)
-			mapUi = true;
-		else
-			mapUi = false;
+		if (InputMgr::GetKeyDown(Keyboard::Key::M))
+		{
+			if (mapUi == false)
+				mapUi = true;
+			else
+				mapUi = false;
+		}
 	}
 
 
@@ -776,6 +785,97 @@ void PlayUi::UiCreate()
 		continueButton->SetAll(*RESOURCE_MGR->GetTexture("graphics/continueButton.png"), { 0, 0 }, Origins::MC);
 		continueButton->SetPos({ windowSize.x - continueButton->GetSize().x, windowSize.y - continueButton->GetSize().y });
 	}
+
+	// choice
+	{
+
+	}
+
+
+	// Map Icon
+	{
+		monsterMapIcon = new SpriteObj();
+		rewordMapIcon = new SpriteObj();
+		questionMapIcon = new SpriteObj();
+		shopMapIcon = new SpriteObj();
+
+		monsterMapIcon->SetAll(*RESOURCE_MGR->GetTexture("graphics/monsterMapIcon.png"), { 0, 0 }, Origins::MC);
+		rewordMapIcon->SetAll(*RESOURCE_MGR->GetTexture("graphics/rewordMapIcon.png"), { 0, 0 }, Origins::MC);
+		questionMapIcon->SetAll(*RESOURCE_MGR->GetTexture("graphics/questionMapIcon.png"), { 0, 0 }, Origins::MC);
+		shopMapIcon->SetAll(*RESOURCE_MGR->GetTexture("graphics/shopMapIcon.png"), { 0, 0 }, Origins::MC);
+	}
+
+	// Map Creat
+	{
+		int randomMap = Utils::RandomRange(0, 4);
+		float monsterMapIconYPos = 0.f;
+		float questionMapIconYPos = 0.f;
+		float shopMapIconYPos = 0.f;
+		float rewordMapIconYPos = 0.f;
+
+		// test
+		randomMap = 0;
+
+		switch (randomMap)
+		{
+		case 0:
+			monsterMapIconYPos = windowSize.y * 0.7f;
+			questionMapIconYPos = windowSize.y * 0.6f;
+			shopMapIconYPos = windowSize.y * 0.5f;
+			rewordMapIconYPos = windowSize.y * 0.4f;
+
+			monsterMapOrder = 0;
+			questionMapOrder = 1;
+			shopMapOrder = 2;
+			rewordMapOrder = 3;
+
+			break;
+
+		case 1:
+			monsterMapIconYPos = windowSize.y * 0.6f;
+			questionMapIconYPos = windowSize.y * 0.7f;
+			shopMapIconYPos = windowSize.y * 0.4f;
+			rewordMapIconYPos = windowSize.y * 0.5f;
+
+			monsterMapOrder = 1;
+			questionMapOrder = 0;
+			shopMapOrder = 3;
+			rewordMapOrder = 2;
+
+			break;
+
+		case 2:
+			monsterMapIconYPos = windowSize.y * 0.5f;
+			questionMapIconYPos = windowSize.y * 0.4f;
+			shopMapIconYPos = windowSize.y * 0.6f;
+			rewordMapIconYPos = windowSize.y * 0.7f;
+
+			monsterMapOrder = 2;
+			questionMapOrder = 3;
+			shopMapOrder = 1;
+			rewordMapOrder = 0;
+
+			break;
+
+		case 3:
+			monsterMapIconYPos = windowSize.y * 0.4f;
+			questionMapIconYPos = windowSize.y * 0.5f;
+			shopMapIconYPos = windowSize.y * 0.7f;
+			rewordMapIconYPos = windowSize.y * 0.6f;
+
+			monsterMapOrder = 3;
+			questionMapOrder = 2;
+			shopMapOrder = 0;
+			rewordMapOrder = 1;
+
+			break;
+		}
+
+		monsterMapIcon->SetPos({ windowSize.x * 0.5f, monsterMapIconYPos });
+		rewordMapIcon->SetPos({ windowSize.x * 0.5f, rewordMapIconYPos });
+		questionMapIcon->SetPos({ windowSize.x * 0.5f, questionMapIconYPos });
+		shopMapIcon->SetPos({ windowSize.x * 0.5f, shopMapIconYPos });
+	}
 }
 
 void PlayUi::SetActionUi(bool set)
@@ -833,4 +933,143 @@ void PlayUi::SetClearUi(bool set)
 {
 	clearBackground->SetActive(set);
 	continueButton->SetActive(set);
+}
+
+void PlayUi::SetMonsterStage(float dt)
+{
+	SetActionUi(true);
+	MonsterSet(monster, true);
+
+	this->attackCount->SetText("COUNT : " + to_string(ironClad->GetAttackCount()));
+	this->defendCount->SetText("COUNT : " + to_string(ironClad->GetDefendCount()));
+	this->attackCount->SetOrigin(Origins::MC);
+	this->defendCount->SetOrigin(Origins::MC);
+
+	monsterPatternDelay -= dt;
+
+	// Tern Pass
+	if (Button::ButtonOnRect(*cursor, *ternPassButton) && isPlayerTern == true && monster[0]->GetAlive() == true)
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Left))
+			SetMonsterTern();
+	}
+
+	// Monster Tern Control
+	if (monsterPatternDelay <= 0.f && isPlayerTern == false)
+		MonsterAction(dt);
+
+	// Monster Pattern Set
+	if (isMonsterTern == true && monsterRandomPatternSetting == true)
+		SetNextMonsterAction();
+
+	// player Tern Control
+	if (isPlayerTern == true && isMonsterTern == false && ironClad->GetCurEnergy() > 0)
+		PlayerTern(dt);
+
+	if (monsterCount == 0)
+	{
+		if (ironClad->GetType() == PlayerType::IronClad)
+		{
+			int hp = ironClad->GetCurHP();
+			ironClad->SetCurHP(hp += 6);
+			ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
+			curHp->SetText(to_string(ironClad->GetCurHP()));
+		}
+		SetClearUi(true);
+		choiceOrder++;
+	}
+}
+
+void PlayUi::EnterTheStage()
+{
+	if (monsterMapIcon->GetActive() == true && stage == Stage::Map)
+	{
+
+		if (Button::ButtonOnRect(*cursor, *monsterMapIcon) && monsterMapOrder == choiceOrder)
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				stage = Stage::Monster;
+				mapUi = false;
+			}
+		}
+
+		if (Button::ButtonOnRect(*cursor, *rewordMapIcon) && rewordMapOrder == choiceOrder)
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				stage = Stage::Reword;
+				mapUi = false;
+			}
+		}
+
+		if (Button::ButtonOnRect(*cursor, *questionMapIcon) && questionMapOrder == choiceOrder)
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				stage = Stage::Question;
+				mapUi = false;
+			}
+		}
+
+		if (Button::ButtonOnRect(*cursor, *shopMapIcon) && shopMapOrder == choiceOrder)
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				stage = Stage::Shop;
+				mapUi = false;
+			}
+		}
+	}
+	// boss
+}
+
+void PlayUi::QuestionStage()
+{
+	int randomStage = Utils::RandomRange(0, 5);
+	int randomMonsterHp = Utils::RandomRange(36, 72);
+	MonsterType randomMonsterLevel = (MonsterType)Utils::RandomRange(0, 3);
+	randomStage = 0;
+	switch (randomStage)
+	{
+	case 0:
+		stage = Stage::Monster;
+		monster[0]->SetMonster(randomMonsterHp, randomMonsterHp, 10, 0, randomMonsterLevel);
+		monster[0]->SetAlive(true);
+		MonsterSet(monster, true);
+		monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+		monsterMaxHp->SetText("/ " + to_string(monster[0]->GetMaxHp()));
+		monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
+
+		ironClad->SetCurEnergy(3);
+		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+		mapUi = false;
+		break;
+	case 1:
+		stage = Stage::Monster;
+		monster[0]->SetMonster(randomMonsterHp, randomMonsterHp, 10, 0, randomMonsterLevel);
+		monster[0]->SetAlive(true);
+		MonsterSet(monster, true);
+		monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+		monsterMaxHp->SetText("/ " + to_string(monster[0]->GetMaxHp()));
+		monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
+
+		ironClad->SetCurEnergy(3);
+		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+
+		mapUi = false;
+		break;
+	case 2:
+		stage = Stage::Shop;
+		mapUi = false;
+		break;
+	case 3:
+		stage = Stage::Shop;
+		mapUi = false;
+		break;
+	case 4:
+		stage = Stage::Reword;
+		mapUi = false;
+		break;
+	}
 }

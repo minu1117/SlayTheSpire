@@ -1,6 +1,11 @@
 #pragma once
 #include "SpriteObj.h"
 
+enum class PlayerType
+{
+	IronClad,
+};
+
 class Player : public SpriteObj
 {
 protected:
@@ -29,9 +34,13 @@ protected:
 	bool rightMove = true;
 	bool leftMove = false;
 
+	PlayerType type;
+
 public:
-	Player(int curH, int maxH, int curG, int curE, int maxE, int curD, float dmg);
+	Player(int curH, int maxH, int curG, int curE, int maxE, int curD, float dmg, PlayerType t);
 	~Player();
+
+	const PlayerType GetType() { return type; };
 
 	int GetCurHP() const { return curHP; };
 	int GetMaxHP() const { return maxHP; };
