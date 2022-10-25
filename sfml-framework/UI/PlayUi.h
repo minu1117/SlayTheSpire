@@ -9,6 +9,16 @@ enum class PlayerType // 캐릭터 추가 시 Get함수로 가져오기 위함
 	IronClad,
 };
 
+enum class Stage
+{
+	Start,
+	Monster,
+	Map,
+	Question,
+	Shop,
+	Reword,
+};
+
 class Monster;
 class Player;
 class PlayUi : public UiMgr
@@ -76,14 +86,20 @@ protected:
 	bool isMonsterTern = true;
 	bool isPlayerTern = true;
 	bool playerActionCountSet = true;
+	bool isStageClear = false;
 	int randomMonsterPattern;
-
+	int monsterCount;
 	float monsterPatternDelay;
 
 	SpriteObj* playerCurHpBar;
 	SpriteObj* playerMaxHpBar;
 	SpriteObj* monsterCurHpBar;
 	SpriteObj* monsterMaxHpBar;
+
+	Stage stage = Stage::Start;
+
+	SpriteObj* clearBackground;
+	SpriteObj* continueButton;
 
 public:
 	PlayUi(Scene* scene);
@@ -98,11 +114,13 @@ public:
 	void SetOptionUi(bool set);
 	void SetMapUi(bool set);
 	void SetGiveUpUi(bool set);
+	void SetActionUi(bool set);
+	void SetClearUi(bool set);
 
 	void MonsterAttack();
 	void PlayerAttack(float dt);
 
-	void MonsterSet(bool set);
+	void MonsterSet(vector<Monster*> monster, bool set);
 
 	void SetNextMonsterAction();
 	void PlayerTern(float dt);
@@ -113,11 +131,17 @@ public:
 	void GiveUpUiControl();
 	void SetMonsterTern();
 
+	void UiCreate();
+
+	void HpControl();
+
+	void SetStage(Stage s) { stage = s; };
+	const Stage& GetStage() { return stage; };
 
 	static Player* ironClad;
 	static Player* GetPlayer(PlayerType type);
 
-	static Monster* monster;
+	static vector<Monster*> monster;
 	static Monster* GetMonster();
 };
 
