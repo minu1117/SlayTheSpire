@@ -152,7 +152,7 @@ void PlayUi::Update(float dt)
 	else
 		SetClearUi(false);
 
-	if (Button::ButtonOnRect(*cursor, *continueButton))
+	if (Button::ButtonOnRect(*cursor, *continueButton) && continueButton->GetActive() == true)
 	{
 		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 		{

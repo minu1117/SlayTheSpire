@@ -4,7 +4,7 @@
 #include "../GameObject/SpriteObj.h"
 #include <vector>
 
-enum class PlayerType // ĳ���� �߰� �� Get�Լ��� �������� ����
+enum class PlayerType
 {
 	IronClad,
 };
