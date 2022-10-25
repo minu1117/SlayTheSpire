@@ -24,6 +24,15 @@ protected:
 	TextObj* ironCladMaxEnergy;
 	TextObj* ironCladCurDefend;
 	TextObj* ironCladDamage;
+	
+	TextObj* attackCount;
+	TextObj* defendCount;
+
+	SpriteObj* attackButton;
+	SpriteObj* defendButton;
+	SpriteObj* actionWindow;
+
+	SpriteObj* ternPassButton;
 
 	// Ui
 	SpriteObj* testBorder;
@@ -66,12 +75,15 @@ protected:
 	bool monsterRandomPatternSetting = true;
 	bool isMonsterTern = true;
 	bool isPlayerTern = true;
+	bool playerActionCountSet = true;
 	int randomMonsterPattern;
 
 	float monsterPatternDelay;
 
 	SpriteObj* playerCurHpBar;
 	SpriteObj* playerMaxHpBar;
+	SpriteObj* monsterCurHpBar;
+	SpriteObj* monsterMaxHpBar;
 
 public:
 	PlayUi(Scene* scene);
@@ -96,12 +108,16 @@ public:
 	void PlayerTern(float dt);
 	void MonsterAction(float dt);
 
+	void OptionUiControl();
+	void MapUiControl();
+	void GiveUpUiControl();
+	void SetMonsterTern();
+
+
 	static Player* ironClad;
 	static Player* GetPlayer(PlayerType type);
 
 	static Monster* monster;
 	static Monster* GetMonster();
-
-	//void PlayerSet();
 };
 

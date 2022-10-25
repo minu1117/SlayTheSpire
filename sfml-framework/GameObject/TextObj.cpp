@@ -48,12 +48,17 @@ void TextObj::SetOrigin(Origins origin)
 	Utils::SetOrigin(text, origin);
 }
 
+void TextObj::SetPos(Vector2f pos)
+{
+	text.setPosition(pos);
+}
+
+const FloatRect& TextObj::GetSize() const
+{
+	return text.getGlobalBounds();
+}
+
 const string& TextObj::GetText() const
 {
 	return text.getString();
-}
-
-const Vector2f& TextObj::GetSize()
-{
-	return text.getScale();
 }

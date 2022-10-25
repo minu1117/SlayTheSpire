@@ -6,7 +6,7 @@
 #include "../GameObject/Monster.h"
 
 Player* PlayUi::ironClad = new Player(80, 80, 99, 3, 3, 0, 5); // 플레이어 생성
-Monster* PlayUi::monster = new Monster(40, 40, 0, 10, MonsterType::Easy);
+Monster* PlayUi::monster = new Monster(43, 43, 0, 10, MonsterType::Easy);
 
 PlayUi::PlayUi(Scene* scene)
 	: UiMgr(scene)
@@ -35,6 +35,9 @@ void PlayUi::Init()
 	auto testNoButton = RESOURCE_MGR->GetTexture("graphics/noButton.png");
 	auto testConfirmMessage = RESOURCE_MGR->GetTexture("graphics/confirmMessage.png");
 	auto testGiveUpButton = RESOURCE_MGR->GetTexture("graphics/giveupButton.png");
+	auto CurHpBarImage = RESOURCE_MGR->GetTexture("graphics/CurHpBar.png");
+	auto MaxHpBarImage = RESOURCE_MGR->GetTexture("graphics/MaxHpBar.png");
+
 
 
 	//auto testChoiceImage1 = RESOURCE_MGR->GetTexture("graphics/choice1.png");
@@ -43,11 +46,17 @@ void PlayUi::Init()
 
 	Vector2f windowSize = (Vector2f)FRAMEWORK->GetWindowSize();
 
+	// 기본 백그라운드
+	{
+		tempBackground = new SpriteObj();
+		tempBackground->SetAll(*testBackground, windowSize * 0.5f, Origins::MC);
+		uiObjList.push_back(tempBackground);
+	}
+
 	// test Monster
 	{
-		monster = new Monster(40, 40, 0, 10, MonsterType::Easy);
 		monster->SetAll(*RESOURCE_MGR->GetTexture("graphics/ironcladimage.png"),
-				{ windowSize.x / 1.5f, windowSize.y / 3 + windowSize.y / 3 }, Origins::MC);
+				{ windowSize.x / 1.5f, windowSize.y / 1.7f }, Origins::MC);
 		monster->SetScale(-1, 1);
 
 		Vector2f setMonsterUiPos = { monster->GetPos().x - 30, monster->GetPos().y + (monster->GetSize().y / 2) };
@@ -61,15 +70,13 @@ void PlayUi::Init()
 
 
 		monsterDefend->SetAll(font, "D : " + to_string(monster->GetDefend()), 30, Color::White,
-			{ setMonsterUiPos.x - 60, setMonsterUiPos.y + 40 });
+			{ setMonsterUiPos.x - 50, setMonsterUiPos.y + 40 });
 		
 		monsterCurHp->SetAll(font, to_string(monster->GetCurHp()), 30, Color::White,
 			{ setMonsterUiPos.x - 50, setMonsterUiPos.y });
-		monsterCurHp->SetOrigin(Origins::MC);
 
-		monsterMaxHp->SetAll(font, to_string(monster->GetMaxHp()), 30, Color::White,
-			{ setMonsterUiPos.x + 50, setMonsterUiPos.y });
-		monsterMaxHp->SetOrigin(Origins::MC);
+		monsterMaxHp->SetAll(font, "/ " + to_string(monster->GetMaxHp()), 30, Color::White,
+			{ setMonsterUiPos.x - 10, setMonsterUiPos.y });
 
 		monsterPattern->SetAll(font, "", 30, Color::White, 
 			{ monster->GetPos().x - monster->GetSize().x / 4, monster->GetPos().y - monster->GetSize().y / 2 - 20 });
@@ -77,13 +84,18 @@ void PlayUi::Init()
 
 		monsterDamage->SetAll(font, "", 30, Color::White, 
 			{ monsterDefend->GetPos().x, setMonsterUiPos.y + 80});
-	}
 
-	// 기본 백그라운드
-	{
-		tempBackground = new SpriteObj();
-		tempBackground->SetAll(*testBackground, windowSize * 0.5f, Origins::MC);
-		uiObjList.push_back(tempBackground);
+		// HP BAR
+		{
+			monsterCurHpBar = new SpriteObj();
+			monsterMaxHpBar = new SpriteObj();
+
+			monsterCurHpBar->SetAll(*CurHpBarImage, { 0, 0 }, Origins::MR);
+			monsterMaxHpBar->SetAll(*MaxHpBarImage, { 0, 0 }, Origins::MR);
+
+			monsterCurHpBar->SetPos({ setMonsterUiPos.x + monsterCurHpBar->GetSize().x / 2 - 30, setMonsterUiPos.y + 15});
+			monsterMaxHpBar->SetPos({ setMonsterUiPos.x + monsterMaxHpBar->GetSize().x / 2 - 30, setMonsterUiPos.y + 15});
+		}
 	}
 
 	// choice 보류
@@ -106,11 +118,18 @@ void PlayUi::Init()
 		// 캐릭터 생성
 		{
 			ironClad->SetAll(*RESOURCE_MGR->GetTexture("graphics/ironcladimage.png"),
-				{ windowSize.x / 4, windowSize.y / 3 + windowSize.y / 3 }, Origins::MC);
+				{ windowSize.x / 4, windowSize.y / 1.7f }, Origins::MC);
 		}
 
-		// 정보 텍스트
+		// 정보
 		{
+			ternPassButton = new SpriteObj();
+			attackButton = new SpriteObj();
+			defendButton = new SpriteObj();
+			actionWindow = new SpriteObj();
+			attackCount = new TextObj();
+			defendCount = new TextObj();
+
 			ironCladMaxHp = new TextObj();
 			ironCladCurHp = new TextObj();
 			ironCladCurEnergy = new TextObj();
@@ -140,20 +159,53 @@ void PlayUi::Init()
 				{ setPlayerUiPos.x, setPlayerUiPos.y + 80});
 
 
+			// Action Ui
+			{
+				actionWindow->SetAll(*RESOURCE_MGR->GetTexture("graphics/actionWindow.png"), {0, 0}, Origins::MC);
+				actionWindow->SetPos({windowSize.x / 2, windowSize.y - (actionWindow->GetSize().y / 2)});
+
+				attackButton->SetAll(*RESOURCE_MGR->GetTexture("graphics/attackButton.png"), 
+					{ 0, 0 }, Origins::MC);
+				attackButton->SetPos({actionWindow->GetPos().x - attackButton->GetSize().x, 
+					actionWindow->GetPos().y });
+
+				defendButton->SetAll(*RESOURCE_MGR->GetTexture("graphics/defenseButton.png"),
+					{ 0, 0 }, Origins::MC);
+				defendButton->SetPos({ attackButton->GetPos().x + (defendButton->GetSize().x * 2), attackButton->GetPos().y});
+	
+				attackCount->SetAll(font, "", 50, Color::Black, { 0, 0 });
+				attackCount->SetPos({ attackButton->GetPos().x, attackButton->GetPos().y - (attackCount->GetSize().height / 4) });
+				attackCount->SetOrigin(Origins::MC);
+
+				defendCount->SetAll(font, "", 50, Color::Black, { defendButton->GetPos().x, attackCount->GetPos().y });
+				defendCount->SetOrigin(Origins::MC);
+
+				ternPassButton->SetAll(*RESOURCE_MGR->GetTexture("graphics/ternPassButton.png"), 
+					{ actionWindow->GetPos().x, actionWindow->GetPos().y}, Origins::MC);
+
+				uiObjList.push_back(actionWindow);
+				uiObjList.push_back(attackButton);
+				uiObjList.push_back(defendButton);
+				uiObjList.push_back(attackCount);
+				uiObjList.push_back(defendCount);
+				uiObjList.push_back(ternPassButton);
+			}
+
+
 			// Hp bar
 			{
 				playerCurHpBar = new SpriteObj();
 				playerMaxHpBar = new SpriteObj();
 
-				
-				playerCurHpBar->SetAll(*RESOURCE_MGR->GetTexture("graphics/CurHpBar.png"),
-					{ setPlayerUiPos.x - 57, setPlayerUiPos.y + 15}, Origins::ML);
-				playerMaxHpBar->SetAll(*RESOURCE_MGR->GetTexture("graphics/MaxHpBar.png"),
-					{ setPlayerUiPos.x - 57, setPlayerUiPos.y + 15 }, Origins::ML);
+				playerCurHpBar->SetAll(*CurHpBarImage, { setPlayerUiPos.x - 57, setPlayerUiPos.y + 15 }, Origins::ML);
+				playerMaxHpBar->SetAll(*MaxHpBarImage, { setPlayerUiPos.x - 57, setPlayerUiPos.y + 15 }, Origins::ML);
 			}
 		}
 
+		// monster
 		uiObjList.push_back(monster);
+		uiObjList.push_back(monsterMaxHpBar);
+		uiObjList.push_back(monsterCurHpBar);
 		uiObjList.push_back(monsterDefend);
 		uiObjList.push_back(monsterCurHp);
 		uiObjList.push_back(monsterMaxHp);
@@ -161,11 +213,9 @@ void PlayUi::Init()
 		uiObjList.push_back(monsterDamage);
 
 
-		//temp
+		// player
 		uiObjList.push_back(playerMaxHpBar);
 		uiObjList.push_back(playerCurHpBar);
-
-
 		uiObjList.push_back(ironClad);
 		uiObjList.push_back(ironCladMaxHp);
 		uiObjList.push_back(ironCladCurHp);
@@ -283,8 +333,22 @@ void PlayUi::Update(float dt)
 	Vector2f worldMousePos = parentScene->ScreenToUiPos((Vector2i)InputMgr::GetMousePos());
 	cursor->SetPos(worldMousePos);
 
-	playerCurHpBar->SetScale(ironClad->GetCurHP() * 0.01f, 1);
-	playerMaxHpBar->SetScale(ironClad->GetMaxHP() * 0.01f, 1);
+
+	this->attackCount->SetText("COUNT : " + to_string(ironClad->GetAttackCount()));
+	this->defendCount->SetText("COUNT : " + to_string(ironClad->GetDefendCount()));
+	this->attackCount->SetOrigin(Origins::MC);
+	this->defendCount->SetOrigin(Origins::MC);
+
+
+	float playerCurHpBarSet = (ironClad->GetMaxHP() - ironClad->GetCurHP()) * (80.f / ironClad->GetMaxHP() * 0.01f);
+	float monsterCurHpBarSet = (monster->GetMaxHp() - monster->GetCurHp()) * (80.f / monster->GetMaxHp() * 0.01f);
+
+
+	playerCurHpBar->SetScale(0.8f - playerCurHpBarSet, 1);
+	playerMaxHpBar->SetScale(0.8f, 1);
+
+	monsterCurHpBar->SetScale(0.8f - monsterCurHpBarSet, 1);
+	monsterMaxHpBar->SetScale(0.8f, 1);
 
 	if (ironClad->GetCurHP() <= 0)
 	{
@@ -295,21 +359,18 @@ void PlayUi::Update(float dt)
 	}
 	if (monster->GetCurHp() <= 0)
 	{
+		monster->SetCurHp(0);
+		monsterCurHp->SetText(to_string(monster->GetCurHp()));
 		MonsterSet(false);
 	}
 
 	monsterPatternDelay -= dt;
 
-	if (InputMgr::GetKeyDown(Keyboard::Key::Tab) && isPlayerTern == true) // 턴 넘기기 버튼으로 바꾸기
+	if (Button::ButtonOnRect(*cursor, *ternPassButton) && isPlayerTern == true && monster->GetAlive() == true) // 턴 넘기기 버튼으로 바꾸기
 	{
-		isMonsterTern = true;
-		monsterRandomPatternSetting = false;
-		isPlayerTern = false;
-		monsterPatternDelay = 1.f;
+		if (InputMgr::GetMouseButtonUp(Mouse::Left))
+			SetMonsterTern();
 	}
-
-	if (isPlayerTern == true && isMonsterTern == false && ironClad->GetCurEnergy() > 0)
-		PlayerTern(dt);
 
 	if (monsterPatternDelay <= 0.f && isPlayerTern == false)
 		MonsterAction(dt);
@@ -317,134 +378,30 @@ void PlayUi::Update(float dt)
 	if (isMonsterTern == true && monsterRandomPatternSetting == true)
 		SetNextMonsterAction();
 
-	if (InputMgr::GetKeyDown(Keyboard::Key::Add))
-	{
-		ironClad->AddGold(10);
-		gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
-	}
+	if (isPlayerTern == true && isMonsterTern == false && ironClad->GetCurEnergy() > 0)
+		PlayerTern(dt);
+
+	//if (InputMgr::GetKeyDown(Keyboard::Key::Add))
+	//{
+	//	ironClad->AddGold(10);
+	//	gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
+	//}
 
 
 	// Option Ui Control
+	if (giveupUi == false)
 	{
-		if (giveupUi == false)
-		{
-			if (Button::ButtonOnRect(*cursor, *option))
-			{
-				if (optionUi == true)
-				{
-					if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
-					{
-						optionUi = false;
-					}
-				}
-				else
-				{
-					if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
-					{
-						optionUi = true;
-					}
-				}
-			}
-			if (InputMgr::GetKeyDown(Keyboard::Key::Escape))
-			{
-				if (optionUi == true)
-				{
-					optionUi = false;
-					SetOptionUi(false);
-				}
-				else
-				{
-					optionUi = true;
-					SetOptionUi(true);
-				}
-			}
-
-			if (optionUi == true)
-			{
-				SetOptionUi(true);
-				if (Button::ButtonOnRect(*cursor, *backButton))
-				{
-					if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
-					{
-						optionUi = false;
-						SetOptionUi(false);
-					}
-				}
-			}
-			else
-				SetOptionUi(false);
-		}
+		OptionUiControl();
 	}
 	
 	// Map Ui Control
+	if (optionUi == false && giveupUi == false)
 	{
-		if (optionUi == false && giveupUi == false)
-		{
-			if (Button::ButtonOnRect(*cursor, *mapIcon))
-			{
-				if (mapUi == true)
-				{
-					if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
-					{
-						mapUi = false;
-					}
-				}
-				else
-				{
-					if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
-					{
-						mapUi = true;
-					}
-				}
-			}
-
-			if (InputMgr::GetKeyDown(Keyboard::Key::M))
-			{
-				if (mapUi == false)
-					mapUi = true;
-				else
-					mapUi = false;
-			}
-
-
-			mapUi == true ? SetMapUi(true) : SetMapUi(false);
-		}
+		MapUiControl();
 	}
 
 	// GiveUp Ui Control
-	{
-		if (optionUi == true)
-		{
-			if (Button::ButtonOnRect(*cursor, *giveUpButton))
-			{
-				if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
-				{
-					giveupUi = true;
-				}
-			}
-
-			if (Button::ButtonOnRect(*cursor, *yesButton))
-			{
-				if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
-				{
-					// 죽음
-				}
-			}
-			if (Button::ButtonOnRect(*cursor, *noButton))
-			{
-				if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
-				{
-					giveupUi = false;
-				}
-			}
-		}
-		if (InputMgr::GetKeyDown(Keyboard::Key::Escape) && giveupUi == true)
-		{
-			giveupUi = false;
-		}
-
-		giveupUi == true ? SetGiveUpUi(true) : SetGiveUpUi(false);
-	}
+	GiveUpUiControl();
 
 	UiMgr::Update(dt);
 }
@@ -453,6 +410,21 @@ void PlayUi::Draw(RenderWindow& window)
 {
 	window.setView(parentScene->GetUiView());
 	UiMgr::Draw(window);
+}
+
+Player* PlayUi::GetPlayer(PlayerType type)
+{
+	switch (type)
+	{
+	case PlayerType::IronClad:
+		return ironClad;
+		break;
+	}
+}
+
+Monster* PlayUi::GetMonster()
+{
+	return monster;
 }
 
 void PlayUi::SetOptionUi(bool set)
@@ -493,6 +465,7 @@ void PlayUi::MonsterAttack()
 			ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
 			ironClad->SetCurHP(ironClad->GetCurHP() - piercingDamage);
 			ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
+			curHp->SetText(to_string(ironClad->GetCurHP()));
 		}
 	}
 	else
@@ -542,44 +515,63 @@ void PlayUi::MonsterSet(bool set)
 	monsterDefend->SetActive(set);
 	monsterPattern->SetActive(set);
 	monsterDamage->SetActive(set);
-}
-
-Player* PlayUi::GetPlayer(PlayerType type)
-{
-	switch (type)
-	{
-	case PlayerType::IronClad:
-		return ironClad;
-		break;
-	}
+	monsterCurHpBar->SetActive(set);
+	monsterMaxHpBar->SetActive(set);
 }
 
 void PlayUi::PlayerTern(float dt)
 {
 	// player tern
-	int defend = ironClad->GetDefend();
+	int maxEnergy = ironClad->GetMaxEnergy();
 	int energy = ironClad->GetCurEnergy();
+	int defend = ironClad->GetDefend();
 
-	if (InputMgr::GetKeyDown(Keyboard::Key::Z))
+	if (playerActionCountSet == true)
 	{
-		PlayerAttack(dt);
-		ironClad->SetCurEnergy(energy -= 1);
-		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+		int count = Utils::RandomRange(0, maxEnergy + 2);
+
+		ironClad->SetAttackCount(count);
+
+		int attCount = ironClad->GetAttackCount();
+		ironClad->SetDefendCount((maxEnergy -= count) + 2);
+
+		playerActionCountSet = false;
 	}
 
-	if (InputMgr::GetKeyDown(Keyboard::Key::X))
+
+	if (Button::ButtonOnRect(*cursor, *attackButton) && ironClad->GetAttackCount() > 0 && energy > 0)
 	{
-		ironClad->SetDefend(defend += 5);
-		ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
-		ironClad->SetCurEnergy(energy -= 1);
-		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+		if (InputMgr::GetMouseButtonUp(Mouse::Left))
+		{
+			int attCount = ironClad->GetAttackCount();
+
+			PlayerAttack(dt);
+			ironClad->SetCurEnergy(energy -= 1);
+			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+
+			ironClad->SetAttackCount(attCount -= 1);
+		}
+	}
+
+	if (Button::ButtonOnRect(*cursor, *defendButton) && ironClad->GetDefendCount() > 0 && energy > 0)
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Left))
+		{
+			int defCount = ironClad->GetDefendCount();
+
+			ironClad->SetDefend(defend += 5);
+			ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+			ironClad->SetCurEnergy(energy -= 1);
+			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+
+			ironClad->SetDefendCount(defCount -= 1);
+		}
 	}
 }
 
 void PlayUi::SetNextMonsterAction()
 {
 	randomMonsterPattern = Utils::RandomRange(0, 3);
-	cout << randomMonsterPattern << endl;
 	if (randomMonsterPattern <= 1)
 	{
 		int setDamage = Utils::RandomRange(8, 15);
@@ -611,6 +603,8 @@ void PlayUi::MonsterAction(float dt)
 
 	isPlayerTern = true;
 	monsterRandomPatternSetting = true;
+	playerActionCountSet = true;
+	ternPassButton->SetActive(true);
 
 	// 일정 시간 뒤에 방어막 사라지게 하려면 좀 더 귀찮아질듯...
 	// 지금은 그냥 사라짐
@@ -618,11 +612,127 @@ void PlayUi::MonsterAction(float dt)
 	ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
 }
 
-Monster* PlayUi::GetMonster()
+void PlayUi::OptionUiControl()
 {
-	return monster;
+	if (Button::ButtonOnRect(*cursor, *option))
+	{
+		if (optionUi == true)
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				optionUi = false;
+			}
+		}
+		else
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				optionUi = true;
+			}
+		}
+	}
+	if (InputMgr::GetKeyDown(Keyboard::Key::Escape))
+	{
+		if (optionUi == true)
+		{
+			optionUi = false;
+			SetOptionUi(false);
+		}
+		else
+		{
+			optionUi = true;
+			SetOptionUi(true);
+		}
+	}
+
+	if (optionUi == true)
+	{
+		SetOptionUi(true);
+		if (Button::ButtonOnRect(*cursor, *backButton))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				optionUi = false;
+				SetOptionUi(false);
+			}
+		}
+	}
+	else
+		SetOptionUi(false);
 }
 
-//void PlayUi::PlayerSet()
-//{
-//}
+void PlayUi::MapUiControl()
+{
+	if (Button::ButtonOnRect(*cursor, *mapIcon))
+	{
+		if (mapUi == true)
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				mapUi = false;
+			}
+		}
+		else
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				mapUi = true;
+			}
+		}
+	}
+
+	if (InputMgr::GetKeyDown(Keyboard::Key::M))
+	{
+		if (mapUi == false)
+			mapUi = true;
+		else
+			mapUi = false;
+	}
+
+
+	mapUi == true ? SetMapUi(true) : SetMapUi(false);
+}
+
+void PlayUi::GiveUpUiControl()
+{
+	if (optionUi == true)
+	{
+		if (Button::ButtonOnRect(*cursor, *giveUpButton))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				giveupUi = true;
+			}
+		}
+
+		if (Button::ButtonOnRect(*cursor, *yesButton))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				// 죽음
+			}
+		}
+		if (Button::ButtonOnRect(*cursor, *noButton))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				giveupUi = false;
+			}
+		}
+	}
+	if (InputMgr::GetKeyDown(Keyboard::Key::Escape) && giveupUi == true)
+	{
+		giveupUi = false;
+	}
+
+	giveupUi == true ? SetGiveUpUi(true) : SetGiveUpUi(false);
+}
+
+void PlayUi::SetMonsterTern()
+{
+	ternPassButton->SetActive(false);
+	isMonsterTern = true;
+	monsterRandomPatternSetting = false;
+	isPlayerTern = false;
+	monsterPatternDelay = 1.f;
+}

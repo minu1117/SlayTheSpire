@@ -17,6 +17,9 @@ protected:
 	int minDefend = 0;
 	int defend;
 
+	int attackCount;
+	int defendCount;
+
 	float attackDamage;
 
 	float speed;
@@ -60,6 +63,11 @@ public:
 	
 	bool GetAlive() { return isAlive; };
 	void SetAlive(bool set) { isAlive = set; };
+
+	void SetAttackCount(int count) { attackCount = count; };
+	void SetDefendCount(int count) { defendCount = count; };
+	int GetAttackCount() const { return attackCount; };
+	int GetDefendCount() const { return defendCount; };
 
 	virtual void Update(float dt) override;
 };

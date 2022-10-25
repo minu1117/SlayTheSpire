@@ -21,7 +21,8 @@ public:
 	void SetAll(Font& font, string str, int size, Color color, Vector2f pos);
 	void SetColor(Color color);
 	void SetOrigin(Origins origin);
+	void SetPos(Vector2f pos);
+	const FloatRect& GetSize() const;
 	const string& GetText() const;
-	const Vector2f& GetSize();
 };
 
