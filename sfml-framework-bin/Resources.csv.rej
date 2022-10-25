@@ -1,0 +1,7 @@
+diff a/sfml-framework-bin/Resources.csv b/sfml-framework-bin/Resources.csv	(rejected hunks)
+@@ -33,3 +33,5 @@
+ graphics/defenseButton.png,0
+ graphics/actionWindow.png,0
+ graphics/ternPassButton.png,0
++graphics/clearBackground.png,0
++graphics/continueButton.png,0

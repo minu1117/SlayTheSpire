@@ -1,12 +1,22 @@
-#pragma once
+ï»¿#pragma once
 #include "UiMgr.h"
 #include "../GameObject/TextObj.h"
 #include "../GameObject/SpriteObj.h"
 #include <vector>
 
-enum class PlayerType // Ä³¸¯ÅÍ Ãß°¡ ½Ã GetÇÔ¼ö·Î °¡Á®¿À±â À§ÇÔ
+enum class PlayerType // Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ Getï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 {
 	IronClad,
+};
+
+enum class Stage
+{
+	Start,
+	Monster,
+	Map,
+	Question,
+	Shop,
+	Reword,
 };
 
 class Monster;
@@ -24,7 +34,7 @@ protected:
 	TextObj* ironCladMaxEnergy;
 	TextObj* ironCladCurDefend;
 	TextObj* ironCladDamage;
-	
+
 	TextObj* attackCount;
 	TextObj* defendCount;
 
@@ -76,14 +86,20 @@ protected:
 	bool isMonsterTern = true;
 	bool isPlayerTern = true;
 	bool playerActionCountSet = true;
+	bool isStageClear = false;
 	int randomMonsterPattern;
-
+	int monsterCount;
 	float monsterPatternDelay;
 
 	SpriteObj* playerCurHpBar;
 	SpriteObj* playerMaxHpBar;
 	SpriteObj* monsterCurHpBar;
 	SpriteObj* monsterMaxHpBar;
+
+	Stage stage = Stage::Start;
+
+	SpriteObj* clearBackground;
+	SpriteObj* continueButton;
 
 public:
 	PlayUi(Scene* scene);
@@ -98,11 +114,13 @@ public:
 	void SetOptionUi(bool set);
 	void SetMapUi(bool set);
 	void SetGiveUpUi(bool set);
+	void SetActionUi(bool set);
+	void SetClearUi(bool set);
 
 	void MonsterAttack();
 	void PlayerAttack(float dt);
 
-	void MonsterSet(bool set);
+	void MonsterSet(vector<Monster*> monster, bool set);
 
 	void SetNextMonsterAction();
 	void PlayerTern(float dt);
@@ -113,11 +131,17 @@ public:
 	void GiveUpUiControl();
 	void SetMonsterTern();
 
+	void UiCreate();
+
+	void HpControl();
+
+	void SetStage(Stage s) { stage = s; };
+	const Stage& GetStage() { return stage; };
 
 	static Player* ironClad;
 	static Player* GetPlayer(PlayerType type);
 
-	static Monster* monster;
+	static vector<Monster*> monster;
 	static Monster* GetMonster();
 };
 

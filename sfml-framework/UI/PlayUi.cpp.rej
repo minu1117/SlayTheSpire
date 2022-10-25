@@ -1,0 +1,10 @@
+diff a/sfml-framework/UI/PlayUi.cpp b/sfml-framework/UI/PlayUi.cpp	(rejected hunks)
+@@ -6,7 +6,7 @@
+ #include "../GameObject/Monster.h"
+ 
+ Player* PlayUi::ironClad = new Player(80, 80, 99, 3, 3, 0, 5); // �÷��̾� ����
+-Monster* PlayUi::monster = new Monster(43, 43, 0, 10, MonsterType::Easy);
++vector<Monster*> PlayUi::monster;
+ 
+ PlayUi::PlayUi(Scene* scene)
+ 	: UiMgr(scene)
