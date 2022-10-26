@@ -75,9 +75,9 @@ protected:
 	int choiceOrder = 0;
 
 	// choice
-	//SpriteObj* choice1;
-	//SpriteObj* choice2;
-	//SpriteObj* choice3;
+	SpriteObj* choice1;
+	SpriteObj* choice2;
+	SpriteObj* choice3;
 
 	bool optionUi = false;
 	bool mapUi = false;
@@ -97,6 +97,8 @@ protected:
 	int randomMonsterPattern;
 	int monsterCount;
 	float monsterPatternDelay;
+	float choiceDelay;
+	bool chooseOption = true;
 
 	SpriteObj* playerCurHpBar;
 	SpriteObj* playerMaxHpBar;
@@ -150,6 +152,8 @@ public:
 	void EnterTheStage();
 
 	void QuestionStage();
+
+	void StartMapPlayerUpgrade(float dt);
 
 	static Player* ironClad;
 	static Player* GetPlayer(PlayerType type);

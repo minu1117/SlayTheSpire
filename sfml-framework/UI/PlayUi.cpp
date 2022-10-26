@@ -22,6 +22,9 @@ void PlayUi::Init()
 
 	// Background
 	uiObjList.push_back(tempBackground);
+	uiObjList.push_back(choice1);
+	uiObjList.push_back(choice2);
+	uiObjList.push_back(choice3);
 
 	// Action Window
 	uiObjList.push_back(actionWindow);
@@ -112,8 +115,7 @@ void PlayUi::Update(float dt)
 	{
 		MonsterSet(monster, false);
 		SetActionUi(false);
-		if (InputMgr::GetKeyDown(Keyboard::Key::Enter)) // 선택
-			stage = Stage::Map;
+		StartMapPlayerUpgrade(dt);
 	}
 
 	if (stage == Stage::Monster)
@@ -421,7 +423,7 @@ void PlayUi::MonsterAction(float dt)
 
 	monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
 
-	ironClad->SetCurEnergy(3);
+	ironClad->SetCurEnergy(ironClad->GetMaxEnergy());
 	ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 
 	isPlayerTern = true;
@@ -789,7 +791,13 @@ void PlayUi::UiCreate()
 
 	// choice
 	{
+		choice1 = new SpriteObj();
+		choice2 = new SpriteObj();
+		choice3 = new SpriteObj();
 
+		choice1->SetAll(*RESOURCE_MGR->GetTexture("graphics/choice1.png"), {0, 0}, Origins::MC);
+		choice2->SetAll(*RESOURCE_MGR->GetTexture("graphics/choice2.png"), {0, 0}, Origins::MC);
+		choice3->SetAll(*RESOURCE_MGR->GetTexture("graphics/choice3.png"), {0, 0}, Origins::MC);
 	}
 
 
@@ -972,7 +980,7 @@ void PlayUi::SetMonsterStage(float dt)
 		if (ironClad->GetType() == PlayerType::IronClad)
 		{
 			int hp = ironClad->GetCurHP();
-			ironClad->SetCurHP(hp += 6);
+			hp + 6 >= ironClad->GetMaxHP() ? ironClad->SetCurHP(ironClad->GetMaxHP()) : ironClad->SetCurHP(hp += 6);
 			ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
 			curHp->SetText(to_string(ironClad->GetCurHP()));
 		}
@@ -1042,7 +1050,8 @@ void PlayUi::QuestionStage()
 		monsterMaxHp->SetText("/ " + to_string(monster[0]->GetMaxHp()));
 		monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
 
-		ironClad->SetCurEnergy(3);
+		ironClad->SetCurEnergy(ironClad->GetMaxEnergy());
+		ironClad->SetMaxEnergy(ironClad->GetMaxEnergy());
 		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 		monsterCount = monster.size();
 		mapUi = false;
@@ -1056,7 +1065,8 @@ void PlayUi::QuestionStage()
 		monsterMaxHp->SetText("/ " + to_string(monster[0]->GetMaxHp()));
 		monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
 
-		ironClad->SetCurEnergy(3);
+		ironClad->SetCurEnergy(ironClad->GetMaxEnergy());
+		ironClad->SetMaxEnergy(ironClad->GetMaxEnergy());
 		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 		monsterCount = monster.size();
 		mapUi = false;
@@ -1073,5 +1083,143 @@ void PlayUi::QuestionStage()
 		stage = Stage::Reword;
 		mapUi = false;
 		break;
+	}
+}
+
+void PlayUi::StartMapPlayerUpgrade(float dt)
+{
+	Vector2f windowSize = (Vector2f)FRAMEWORK->GetWindowSize();
+
+	choiceDelay -= dt;
+
+	if (chooseOption == true)
+	{
+		int randomChoice = Utils::RandomRange(0, 3);
+
+		switch (randomChoice)
+		{
+		case 0:
+			choice1->SetPos({ 0 + choice1->GetSize().x * 2, windowSize.y - choice1->GetSize().y * 3 });
+			choice2->SetPos({ 0 + choice1->GetSize().x * 2, windowSize.y - choice1->GetSize().y });
+
+			choice1->SetActive(true);
+			choice2->SetActive(true);
+			choice3->SetActive(false);
+			break;
+		case 1:
+			choice1->SetPos({ 0 + choice1->GetSize().x * 2, windowSize.y - choice1->GetSize().y * 3 });
+			choice3->SetPos({ 0 + choice1->GetSize().x * 2, windowSize.y - choice1->GetSize().y });
+
+			choice1->SetActive(true);
+			choice2->SetActive(false);
+			choice3->SetActive(true);
+			break;
+		case 2:
+			choice2->SetPos({ 0 + choice1->GetSize().x * 2, windowSize.y - choice1->GetSize().y * 3 });
+			choice3->SetPos({ 0 + choice1->GetSize().x * 2, windowSize.y - choice1->GetSize().y });
+
+			choice1->SetActive(false);
+			choice2->SetActive(true);
+			choice3->SetActive(true);
+			break;
+		}
+
+		chooseOption = false;
+	}
+
+	if (stage == Stage::Start)
+	{
+		if (Button::ButtonOnRect(*cursor, *choice1))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && choice1->GetActive() == true)
+			{
+				int hp = ironClad->GetCurHP();
+				int maxhp = ironClad->GetMaxHP();
+				ironClad->SetCurHP(hp += 5);
+				ironClad->SetMaxHP(maxhp += 5);
+
+				ironCladCurHp->SetText(to_string(ironClad->GetMaxHP()));
+				ironCladMaxHp->SetText(to_string(ironClad->GetMaxHP()));
+				curHp->SetText(to_string(ironClad->GetMaxHP()));
+				maxHp->SetText(to_string(ironClad->GetMaxHP()));
+
+				choice1->SetActive(false);
+				choice2->SetActive(false);
+				choice3->SetActive(false);
+
+				choiceDelay = 1.f;
+			}
+		}
+		if (Button::ButtonOnRect(*cursor, *choice2))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && choice2->GetActive() == true)
+			{
+				int hp = ironClad->GetCurHP();
+				int maxhp = ironClad->GetMaxHP();
+				ironClad->SetCurHP(hp -= 20);
+				ironClad->SetMaxHP(maxhp -= 20);
+
+				ironCladCurHp->SetText(to_string(ironClad->GetMaxHP()));
+				ironCladMaxHp->SetText(to_string(ironClad->GetMaxHP()));
+				curHp->SetText(to_string(ironClad->GetMaxHP()));
+				maxHp->SetText(to_string(ironClad->GetMaxHP()));
+
+
+				int e = ironClad->GetCurEnergy();
+				int maxe = ironClad->GetMaxEnergy();
+				ironClad->SetMaxEnergy(e += 2);
+				ironClad->SetCurEnergy(maxe += 2);
+
+
+				ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+				ironCladMaxEnergy->SetText(to_string(ironClad->GetMaxEnergy()));
+
+				choice1->SetActive(false);
+				choice2->SetActive(false);
+				choice3->SetActive(false);
+
+				choiceDelay = 1.f;
+			}
+		}
+		if (Button::ButtonOnRect(*cursor, *choice3))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && choice3->GetActive() == true)
+			{
+				int hp = ironClad->GetCurHP();
+				int maxhp = ironClad->GetMaxHP();
+				ironClad->SetCurHP(hp -= 10);
+				ironClad->SetMaxHP(maxhp -= 10);
+
+				ironCladCurHp->SetText(to_string(ironClad->GetMaxHP()));
+				ironCladMaxHp->SetText(to_string(ironClad->GetMaxHP()));
+				curHp->SetText(to_string(ironClad->GetMaxHP()));
+				maxHp->SetText(to_string(ironClad->GetMaxHP()));
+
+
+				int d = ironClad->GetDamage();
+				ironClad->AddDamage(2);
+
+
+				ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage()));
+
+				choice1->SetActive(false);
+				choice2->SetActive(false);
+				choice3->SetActive(false);
+
+				choiceDelay = 1.f;
+			}
+		}
+
+		if (choiceDelay <= 0.f 
+			&& choice1->GetActive() == false
+			&& choice2->GetActive() == false
+			&& choice3->GetActive() == false)
+			stage = Stage::Map;
+	}
+	else
+	{
+		choice1->SetActive(false);
+		choice2->SetActive(false);
+		choice3->SetActive(false);
 	}
 }
