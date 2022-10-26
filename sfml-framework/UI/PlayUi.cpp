@@ -1310,6 +1310,8 @@ void PlayUi::SetDieUi(bool set)
 void PlayUi::ResetPlayUi()
 {
 	monster.clear();
+	uiObjList.clear();
+
 	Init();
 
 	ironClad->SetAlive(true);
@@ -1321,16 +1323,11 @@ void PlayUi::ResetPlayUi()
 	isPlayerTern = true;
 	playerActionCountSet = true;
 	isStageClear = false;
-	randomMonsterPattern = 0;
 	chooseOption = true;
 	monsterKillCount = 0;
 	optionUi = false;
 	mapUi = false;
 	giveupUi = false;
-	monsterMapOrder = 0;
-	rewordMapOrder = 0;
-	questionMapOrder = 0;
-	shopMapOrder = 0;
 	choiceOrder = 0;
 	stage = Stage::Start;
 }
