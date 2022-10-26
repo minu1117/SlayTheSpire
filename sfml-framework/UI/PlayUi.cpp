@@ -76,7 +76,6 @@ void PlayUi::Init()
 	uiObjList.push_back(yesButton);
 	uiObjList.push_back(noButton);
 
-
 	// Top Ui
 	uiObjList.push_back(testBorder);
 	uiObjList.push_back(gold);
@@ -84,6 +83,11 @@ void PlayUi::Init()
 	uiObjList.push_back(maxHp);
 	uiObjList.push_back(mapIcon);
 	uiObjList.push_back(option);
+
+	// die
+	uiObjList.push_back(dieOrGiveup);
+	uiObjList.push_back(floors);
+	uiObjList.push_back(monsterKilled);
 
 	cursor = UiDev1::GetCursor();
 	uiObjList.push_back(cursor);
@@ -103,13 +107,17 @@ void PlayUi::Reset()
 
 void PlayUi::Update(float dt)
 {
-	UiMgr::Update(dt);
 	Vector2f worldMousePos = parentScene->ScreenToUiPos((Vector2i)InputMgr::GetMousePos());
 	cursor->SetPos(worldMousePos);
 
 	// Player / Monster HP, HP Bar Control
 	HpControl();
 	EnterTheStage();
+
+	if (ironClad->GetAlive() == true)
+		SetDieUi(false);
+	else
+		SetDieUi(true);
 
 	if (stage == Stage::Start)
 	{
@@ -118,21 +126,23 @@ void PlayUi::Update(float dt)
 		StartMapPlayerUpgrade(dt);
 	}
 
+	if (Button::ButtonOnRect(*cursor, *continueButton) && continueButton->GetActive() == true)
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+		{
+			SetClearUi(false);
+			ironClad->SetDefend(0);
+			ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+			stage = Stage::Map;
+		}
+	}
+
 	if (stage == Stage::Monster)
 	{
 		SetMonsterStage(dt);
 	}
 	else
 		SetClearUi(false);
-
-	if (Button::ButtonOnRect(*cursor, *continueButton) && continueButton->GetActive() == true)
-	{
-		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
-		{
-			SetClearUi(false);
-			stage = Stage::Map;
-		}
-	}
 
 	if (stage == Stage::Map)
 	{
@@ -347,7 +357,7 @@ void PlayUi::PlayerTern(float dt)
 	}
 
 
-	if (Button::ButtonOnRect(*cursor, *attackButton) && ironClad->GetAttackCount() > 0 && energy > 0)
+	if (Button::ButtonOnRect(*cursor, *attackButton) && ironClad->GetAttackCount() > 0 && energy > 0 && monsterCount > 0 && dieOrGiveup->GetActive() == false)
 	{
 		if (InputMgr::GetMouseButtonUp(Mouse::Left))
 		{
@@ -361,7 +371,7 @@ void PlayUi::PlayerTern(float dt)
 		}
 	}
 
-	if (Button::ButtonOnRect(*cursor, *defendButton) && ironClad->GetDefendCount() > 0 && energy > 0)
+	if (Button::ButtonOnRect(*cursor, *defendButton) && ironClad->GetDefendCount() > 0 && energy > 0 && monsterCount > 0 && dieOrGiveup->GetActive() == false)
 	{
 		if (InputMgr::GetMouseButtonUp(Mouse::Left))
 		{
@@ -490,7 +500,7 @@ void PlayUi::MapUiControl()
 {
 	if (stage != Stage::Map)
 	{
-		if (Button::ButtonOnRect(*cursor, *mapIcon))
+		if (Button::ButtonOnRect(*cursor, *mapIcon) && dieOrGiveup->GetActive() == false)
 		{
 			if (mapUi == true)
 			{
@@ -508,7 +518,7 @@ void PlayUi::MapUiControl()
 			}
 		}
 
-		if (InputMgr::GetKeyDown(Keyboard::Key::M))
+		if (InputMgr::GetKeyDown(Keyboard::Key::M) && dieOrGiveup->GetActive() == false)
 		{
 			if (mapUi == false)
 				mapUi = true;
@@ -523,7 +533,7 @@ void PlayUi::MapUiControl()
 
 void PlayUi::GiveUpUiControl()
 {
-	if (optionUi == true)
+	if (optionUi == true && dieOrGiveup->GetActive() == false)
 	{
 		if (Button::ButtonOnRect(*cursor, *giveUpButton))
 		{
@@ -537,7 +547,8 @@ void PlayUi::GiveUpUiControl()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
-				// ����
+				ironClad->SetAlive(false);
+				SetDieUi(true);
 			}
 		}
 		if (Button::ButtonOnRect(*cursor, *noButton))
@@ -548,7 +559,7 @@ void PlayUi::GiveUpUiControl()
 			}
 		}
 	}
-	if (InputMgr::GetKeyDown(Keyboard::Key::Escape) && giveupUi == true)
+	if (InputMgr::GetKeyDown(Keyboard::Key::Escape) && giveupUi == true && dieOrGiveup->GetActive() == false)
 	{
 		giveupUi = false;
 	}
@@ -885,6 +896,21 @@ void PlayUi::UiCreate()
 		questionMapIcon->SetPos({ windowSize.x * 0.5f, questionMapIconYPos });
 		shopMapIcon->SetPos({ windowSize.x * 0.5f, shopMapIconYPos });
 	}
+
+	// die
+	{
+		dieOrGiveup = new SpriteObj();
+		floors = new TextObj();
+		monsterKilled = new TextObj();
+
+		dieOrGiveup->SetAll(*RESOURCE_MGR->GetTexture("graphics/DieOrGiveup.png"), 
+			windowSize * 0.5f, Origins::MC);
+
+		floors->SetAll(font, "", 50, Color::White, dieOrGiveup->GetPos());
+		monsterKilled->SetAll(font, "", 50, Color::White, { floors->GetPos().x, floors->GetPos().y + floors->GetSize().top / 4});
+	}
+
+
 }
 
 void PlayUi::SetActionUi(bool set)
@@ -948,16 +974,10 @@ void PlayUi::SetMonsterStage(float dt)
 {
 	SetActionUi(true);
 	MonsterSet(monster, true);
-
-	this->attackCount->SetText("COUNT : " + to_string(ironClad->GetAttackCount()));
-	this->defendCount->SetText("COUNT : " + to_string(ironClad->GetDefendCount()));
-	this->attackCount->SetOrigin(Origins::MC);
-	this->defendCount->SetOrigin(Origins::MC);
-
 	monsterPatternDelay -= dt;
 
 	// Tern Pass
-	if (Button::ButtonOnRect(*cursor, *ternPassButton) && isPlayerTern == true && monster[0]->GetAlive() == true)
+	if (Button::ButtonOnRect(*cursor, *ternPassButton) && isPlayerTern == true && monster[0]->GetAlive() == true && dieOrGiveup->GetActive() == false)
 	{
 		if (InputMgr::GetMouseButtonUp(Mouse::Left))
 			SetMonsterTern();
@@ -973,7 +993,14 @@ void PlayUi::SetMonsterStage(float dt)
 
 	// player Tern Control
 	if (isPlayerTern == true && isMonsterTern == false && ironClad->GetCurEnergy() > 0)
+	{
 		PlayerTern(dt);
+	}
+
+	this->attackCount->SetText("COUNT : " + to_string(ironClad->GetAttackCount()));
+	this->defendCount->SetText("COUNT : " + to_string(ironClad->GetDefendCount()));
+	this->attackCount->SetOrigin(Origins::MC);
+	this->defendCount->SetOrigin(Origins::MC);
 
 	if (monsterCount == 0)
 	{
@@ -983,9 +1010,11 @@ void PlayUi::SetMonsterStage(float dt)
 			hp + 6 >= ironClad->GetMaxHP() ? ironClad->SetCurHP(ironClad->GetMaxHP()) : ironClad->SetCurHP(hp += 6);
 			ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
 			curHp->SetText(to_string(ironClad->GetCurHP()));
+			playerActionCountSet = true;
 		}
 		SetClearUi(true);
 		choiceOrder++;
+		monsterKillCount++;
 	}
 }
 
@@ -1038,7 +1067,7 @@ void PlayUi::QuestionStage()
 	int randomStage = Utils::RandomRange(0, 5);
 	int randomMonsterHp = Utils::RandomRange(36, 72);
 	MonsterType randomMonsterLevel = (MonsterType)Utils::RandomRange(0, 3);
-	randomStage = 0;
+	randomStage = 0; // Dev Mode
 	switch (randomStage)
 	{
 	case 0:
@@ -1046,10 +1075,14 @@ void PlayUi::QuestionStage()
 		monster[0]->SetMonster(randomMonsterHp, randomMonsterHp, 10, 0, randomMonsterLevel);
 		monster[0]->SetAlive(true);
 		MonsterSet(monster, true);
+
+		SetNextMonsterAction();
+		monster[0]->SetDamage(monster[0]->GetDamage());
+
 		monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
 		monsterMaxHp->SetText("/ " + to_string(monster[0]->GetMaxHp()));
 		monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
-
+		
 		ironClad->SetCurEnergy(ironClad->GetMaxEnergy());
 		ironClad->SetMaxEnergy(ironClad->GetMaxEnergy());
 		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
@@ -1127,7 +1160,7 @@ void PlayUi::StartMapPlayerUpgrade(float dt)
 		chooseOption = false;
 	}
 
-	if (stage == Stage::Start)
+	if (stage == Stage::Start && dieOrGiveup->GetActive() == false)
 	{
 		if (Button::ButtonOnRect(*cursor, *choice1))
 		{
@@ -1221,5 +1254,24 @@ void PlayUi::StartMapPlayerUpgrade(float dt)
 		choice1->SetActive(false);
 		choice2->SetActive(false);
 		choice3->SetActive(false);
+	}
+}
+
+void PlayUi::SetDieUi(bool set)
+{
+	floors->SetText("Floors : " + to_string(choiceOrder));
+	monsterKilled->SetText("Monster Killed : " + to_string(monsterKillCount));
+	floors->SetOrigin(Origins::MC);
+	monsterKilled->SetOrigin(Origins::MC);
+
+	dieOrGiveup->SetActive(set);
+	floors->SetActive(set);
+	monsterKilled->SetActive(set);
+
+	if (dieOrGiveup->GetActive() == true)
+	{
+		optionUi = false;
+		mapUi = false;
+		giveupUi = false;
 	}
 }

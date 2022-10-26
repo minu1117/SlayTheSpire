@@ -2,7 +2,7 @@
 #include "../Framework/Framework.h"
 
 Player::Player(int curH, int maxH, int curG, int curE, int maxE, int curD, float dmg, PlayerType t)
-	: curHP(curH), maxHP(maxH), curGold(curG), curEnergy(curE), maxEnergy(maxE), defend(curD), speed(700.f), attackDamage(dmg), type(t)
+	: curHP(curH), maxHP(maxH), curGold(curG), curEnergy(curE), maxEnergy(maxE), defend(curD), speed(1400.f), attackDamage(dmg), type(t)
 {
 
 }

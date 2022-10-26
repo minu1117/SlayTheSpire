@@ -110,6 +110,12 @@ protected:
 	SpriteObj* clearBackground;
 	SpriteObj* continueButton;
 
+	// die
+	SpriteObj* dieOrGiveup;
+	TextObj* floors;
+	TextObj* monsterKilled;
+	int monsterKillCount;
+
 public:
 	PlayUi(Scene* scene);
 	~PlayUi();
@@ -154,6 +160,8 @@ public:
 	void QuestionStage();
 
 	void StartMapPlayerUpgrade(float dt);
+
+	void SetDieUi(bool set);
 
 	static Player* ironClad;
 	static Player* GetPlayer(PlayerType type);
