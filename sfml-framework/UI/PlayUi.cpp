@@ -393,7 +393,7 @@ void PlayUi::SetNextMonsterAction()
 			monster[0]->SetDamage(setDamage);
 			break;
 		case MonsterType::Hard:
-			setDamage = Utils::RandomRange(10, 23);
+			setDamage = Utils::RandomRange(6, 23);
 			monster[0]->SetDamage(setDamage);
 			break;
 		}
@@ -405,6 +405,7 @@ void PlayUi::SetNextMonsterAction()
 	else
 	{
 		monsterPattern->SetText("DEFENCE");
+		monsterDamage->SetText("");
 		monsterDamage->SetActive(false);
 	}
 
