@@ -4,8 +4,9 @@
 #include "UiDev1.h"
 #include "../GameObject/Monster.h"
 
-Player* PlayUi::ironClad = new Player(80, 80, 99, 3, 3, 0, 5, PlayerType::IronClad); // �÷��̾� ����
+Player* PlayUi::ironClad;
 vector<Monster*> PlayUi::monster;
+SpriteObj* PlayUi::mainMenuButton = new SpriteObj();
 
 PlayUi::PlayUi(Scene* scene)
 	: UiMgr(scene)
@@ -71,6 +72,7 @@ void PlayUi::Init()
 	uiObjList.push_back(optionBackground);
 	uiObjList.push_back(backButton);
 	uiObjList.push_back(giveUpButton);
+	uiObjList.push_back(gameOffButton);
 	uiObjList.push_back(confirmBackground);
 	uiObjList.push_back(confirmMessage);
 	uiObjList.push_back(yesButton);
@@ -88,6 +90,7 @@ void PlayUi::Init()
 	uiObjList.push_back(dieOrGiveup);
 	uiObjList.push_back(floors);
 	uiObjList.push_back(monsterKilled);
+	uiObjList.push_back(mainMenuButton);
 
 	cursor = UiDev1::GetCursor();
 	uiObjList.push_back(cursor);
@@ -207,6 +210,7 @@ void PlayUi::SetOptionUi(bool set)
 	backButton->SetActive(set);
 	optionBackground->SetActive(set);
 	giveUpButton->SetActive(set);
+	gameOffButton->SetActive(set);
 }
 
 void PlayUi::SetMapUi(bool set)
@@ -491,6 +495,13 @@ void PlayUi::OptionUiControl()
 				SetOptionUi(false);
 			}
 		}
+		if (Button::ButtonOnRect(*cursor, *gameOffButton))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				exit(1);
+			}
+		}
 	}
 	else
 		SetOptionUi(false);
@@ -649,6 +660,7 @@ void PlayUi::UiCreate()
 	// ĳ���� ���� UI
 	{
 		// ĳ���� ����
+		ironClad = new Player(80, 80, 99, 3, 3, 0, 5, PlayerType::IronClad);
 		ironClad->SetAll(*RESOURCE_MGR->GetTexture("graphics/ironcladimage.png"),
 			{ windowSize.x / 4, windowSize.y / 1.7f }, Origins::MC);
 
@@ -745,10 +757,14 @@ void PlayUi::UiCreate()
 			option = new SpriteObj();
 			optionBackground = new SpriteObj();
 			giveUpButton = new SpriteObj();
+			gameOffButton = new SpriteObj();
+
 
 			backButton->SetAll(*testBackButton, { 100, windowSize.y - 200.f }, Origins::MC);
 			optionBackground->SetAll(*testOptionBackground, windowSize * 0.5f, Origins::MC);
 			giveUpButton->SetAll(*testGiveUpButton, windowSize * 0.5f, Origins::MC);
+			gameOffButton->SetAll(*RESOURCE_MGR->GetTexture("graphics/gameOffButton.png"), {0, 0}, Origins::MC);
+			gameOffButton->SetPos({ windowSize.x - gameOffButton->GetSize().x, backButton->GetPos().y});
 		}
 
 		// ���� ����
@@ -910,7 +926,13 @@ void PlayUi::UiCreate()
 		monsterKilled->SetAll(font, "", 50, Color::White, { floors->GetPos().x, floors->GetPos().y + floors->GetSize().top / 4});
 	}
 
+	// Main Menu Button
+	{
+		mainMenuButton = new SpriteObj();
+		mainMenuButton->SetAll(*RESOURCE_MGR->GetTexture("graphics/mainMenuButton.png"), { 0, 0}, Origins::MC);
+		mainMenuButton->SetPos({ monsterKilled->GetPos().x, monsterKilled->GetPos().y + mainMenuButton->GetSize().y * 2 });
 
+	}
 }
 
 void PlayUi::SetActionUi(bool set)
@@ -1172,7 +1194,7 @@ void PlayUi::StartMapPlayerUpgrade(float dt)
 				ironClad->SetMaxHP(maxhp += 5);
 
 				ironCladCurHp->SetText(to_string(ironClad->GetMaxHP()));
-				ironCladMaxHp->SetText(to_string(ironClad->GetMaxHP()));
+				ironCladMaxHp->SetText("/ " + to_string(ironClad->GetMaxHP()));
 				curHp->SetText(to_string(ironClad->GetMaxHP()));
 				maxHp->SetText(to_string(ironClad->GetMaxHP()));
 
@@ -1193,7 +1215,7 @@ void PlayUi::StartMapPlayerUpgrade(float dt)
 				ironClad->SetMaxHP(maxhp -= 20);
 
 				ironCladCurHp->SetText(to_string(ironClad->GetMaxHP()));
-				ironCladMaxHp->SetText(to_string(ironClad->GetMaxHP()));
+				ironCladMaxHp->SetText("/ " + to_string(ironClad->GetMaxHP()));
 				curHp->SetText(to_string(ironClad->GetMaxHP()));
 				maxHp->SetText(to_string(ironClad->GetMaxHP()));
 
@@ -1224,7 +1246,7 @@ void PlayUi::StartMapPlayerUpgrade(float dt)
 				ironClad->SetMaxHP(maxhp -= 10);
 
 				ironCladCurHp->SetText(to_string(ironClad->GetMaxHP()));
-				ironCladMaxHp->SetText(to_string(ironClad->GetMaxHP()));
+				ironCladMaxHp->SetText("/ " + to_string(ironClad->GetMaxHP()));
 				curHp->SetText(to_string(ironClad->GetMaxHP()));
 				maxHp->SetText(to_string(ironClad->GetMaxHP()));
 
@@ -1267,11 +1289,48 @@ void PlayUi::SetDieUi(bool set)
 	dieOrGiveup->SetActive(set);
 	floors->SetActive(set);
 	monsterKilled->SetActive(set);
+	mainMenuButton->SetActive(set);
 
 	if (dieOrGiveup->GetActive() == true)
 	{
 		optionUi = false;
 		mapUi = false;
 		giveupUi = false;
+
+		if (Button::ButtonOnRect(*cursor, *mainMenuButton))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				ResetPlayUi();
+			}
+		}
 	}
+}
+
+void PlayUi::ResetPlayUi()
+{
+	monster.clear();
+	Init();
+
+	ironClad->SetAlive(true);
+	monster[0]->SetAlive(true);
+	SetDieUi(false);
+
+	monsterRandomPatternSetting = true;
+	isMonsterTern = true;
+	isPlayerTern = true;
+	playerActionCountSet = true;
+	isStageClear = false;
+	randomMonsterPattern = 0;
+	chooseOption = true;
+	monsterKillCount = 0;
+	optionUi = false;
+	mapUi = false;
+	giveupUi = false;
+	monsterMapOrder = 0;
+	rewordMapOrder = 0;
+	questionMapOrder = 0;
+	shopMapOrder = 0;
+	choiceOrder = 0;
+	stage = Stage::Start;
 }

@@ -2,7 +2,7 @@
 #include "../InlcludeHeader/SceneIncludeHeader.h"
 #include "../Framework/Button.h"
 #include "../UI/PlayUi.h"
-//#include "../GameObject/Monster.h"
+#include "../UI/UiDev1.h"
 
 SceneDev2_Play::SceneDev2_Play()
 	: Scene(Scenes::Dev2)
@@ -60,10 +60,13 @@ void SceneDev2_Play::Update(float dt)
 {
 	Scene::Update(dt);
 
-	//if (InputMgr::GetKeyDown(Keyboard::Key::Escape))
-	//{
-	//	SCENE_MGR->ChangeScene(Scenes::Dev1);
-	//}
+	if (Button::ButtonOnRect(*UiDev1::GetCursor(), *PlayUi::GetMainMenuButton()))
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+		{
+			SCENE_MGR->ChangeScene(Scenes::Dev1);
+		}
+	}
 
 	uiMgr->Update(dt);
 }

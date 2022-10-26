@@ -19,7 +19,6 @@ class Monster;
 class PlayUi : public UiMgr
 {
 protected:
-	SpriteObj* cursor;
 	SpriteObj* tempBackground;
 
 	// ironClad
@@ -116,6 +115,9 @@ protected:
 	TextObj* monsterKilled;
 	int monsterKillCount;
 
+
+	SpriteObj* gameOffButton;
+
 public:
 	PlayUi(Scene* scene);
 	~PlayUi();
@@ -168,5 +170,13 @@ public:
 
 	static vector<Monster*> monster;
 	static Monster* GetMonster();
+
+	SpriteObj* cursor;
+	SpriteObj* GetCursor() { return cursor; };
+
+	static SpriteObj* mainMenuButton;
+	static SpriteObj* GetMainMenuButton() { return mainMenuButton; };
+
+	void ResetPlayUi();
 };
 
