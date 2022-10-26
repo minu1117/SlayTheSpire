@@ -1043,6 +1043,7 @@ void PlayUi::QuestionStage()
 
 		ironClad->SetCurEnergy(3);
 		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+		monsterCount = monster.size();
 		mapUi = false;
 		break;
 	case 1:
@@ -1056,7 +1057,7 @@ void PlayUi::QuestionStage()
 
 		ironClad->SetCurEnergy(3);
 		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
-
+		monsterCount = monster.size();
 		mapUi = false;
 		break;
 	case 2:

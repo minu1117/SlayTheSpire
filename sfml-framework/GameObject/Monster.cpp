@@ -32,7 +32,7 @@ void Monster::Pattern(int pattern, float dt)
 		patternType = MonsterPattern::Attack;
 		break;
 	case 2:
-		float df = Utils::RandomRange(10, 15);
+		float df = Utils::RandomRange(5, 15);
 		SetDefend(defend + df);
 		patternType = MonsterPattern::Defence;
 		break;
