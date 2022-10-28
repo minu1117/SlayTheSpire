@@ -37,6 +37,9 @@ protected:
 	SpriteObj* actionWindow;
 
 	SpriteObj* ternPassButton;
+	SpriteObj* ternPassButtonHover;
+	bool isHover = false;
+	bool uiHoverSoundPlay = true;
 
 	// Ui
 	SpriteObj* testBorder;
@@ -115,8 +118,30 @@ protected:
 	TextObj* monsterKilled;
 	int monsterKillCount;
 
-
 	SpriteObj* gameOffButton;
+
+	// shop
+	SpriteObj* damageUp;
+	SpriteObj* defenseUp;
+	SpriteObj* energyUp;
+	SpriteObj* hpUp;
+	SpriteObj* getSkill;
+
+	// reword
+	SpriteObj* chest;
+	SpriteObj* rewordImage;
+	TextObj* addGold;
+	TextObj* addDamage;
+	TextObj* addDefend;
+	TextObj* addHp;
+	TextObj* rewordText;
+	bool randomReword = true;
+	bool rewordUi = false;
+	int randomChoice;
+	int getGold;
+	int getDamage;
+	int getDefend;
+	int getHp;
 
 public:
 	PlayUi(Scene* scene);
@@ -161,9 +186,19 @@ public:
 
 	void QuestionStage();
 
+	void ShopStage();
+
+	void RewordStage();
+
 	void StartMapPlayerUpgrade(float dt);
 
 	void SetDieUi(bool set);
+
+	void SetShopMapUi(bool set);
+
+	void SetRewordMapUi(bool set);
+
+	void SerRewordUi(bool set);
 
 	static Player* ironClad;
 	static Player* GetPlayer(PlayerType type);

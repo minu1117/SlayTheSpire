@@ -6,6 +6,13 @@ enum class PlayerType
 	IronClad,
 };
 
+enum class AttackSkill
+{
+	Normal,
+	Smite,
+	BloodSucking,
+};
+
 class Player : public SpriteObj
 {
 protected:
@@ -24,8 +31,13 @@ protected:
 
 	int attackCount;
 	int defendCount;
+	int addDefend = 5;
+	int weakenAddDefend;
+	int notWeakenAddDefend;
 
 	float attackDamage;
+	float weakenDamage;
+	float notWeakenDamage;
 
 	float speed;
 
@@ -33,6 +45,8 @@ protected:
 	bool isAttack = false;
 	bool rightMove = true;
 	bool leftMove = false;
+
+	int isWeaken = 0;
 
 	PlayerType type;
 
@@ -49,6 +63,7 @@ public:
 	void SetMaxHP(float hp) { maxHP = hp; };
 
 	int GetCurGold() const { return curGold; };
+	void SetGold(int gold) { curGold = gold; };
 
 	int GetCurEnergy() const { return curEnergy; };
 	void SetCurEnergy(int energy) 
@@ -59,12 +74,16 @@ public:
 	void SetDefend(int def) { defend = def; };
 	int GetDefend() { return defend; };
 
+	void SetAddDefend(int def) { addDefend = def; };
+	int GetAddDefend() { return addDefend; };
+
 	void AddGold(int gold) { curGold += gold; };
 	void AddEnergy(int energy) { curEnergy += energy; };
 	void AddMaxHealth(int health) { maxHP += health; };
 	void AddCurHealth(int health) { curHP += health; };
 
 	void AddDamage(float dmg) { attackDamage += dmg; };
+	void SetDamage(float dmg) { attackDamage = dmg; };
 	float GetDamage() const { return attackDamage; };
 
 	void SetIsAttack(bool set);
@@ -77,6 +96,21 @@ public:
 	void SetDefendCount(int count) { defendCount = count; };
 	int GetAttackCount() const { return attackCount; };
 	int GetDefendCount() const { return defendCount; };
+
+	void SetIsWeaken(int w) { isWeaken = w; };
+	int GetIsWeaken() const { return isWeaken; };
+
+	void SetWeakenDamage(float w) { weakenDamage = w; };
+	float GetWeakenDamage() const { return weakenDamage; };
+
+	void SetNotWeakenDamage(float w) { notWeakenDamage = w; };
+	float GetNotWeakenDamage() const { return notWeakenDamage; };
+
+	void SetWeakenDefend(float w) { weakenAddDefend = w; };
+	float GetWeakenDefend() const { return weakenAddDefend; };
+
+	void SetNotWeakenDefend(float w) { notWeakenAddDefend = w; };
+	float GetNotWeakenDefend() const { return notWeakenAddDefend; };
 
 	virtual void Update(float dt) override;
 };

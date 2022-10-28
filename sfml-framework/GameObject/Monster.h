@@ -33,6 +33,7 @@ protected:
 	bool leftMove = true;
 	bool isAlive = true;
 
+	int isWeaken = 0;
 
 	MonsterType type;
 	MonsterPattern patternType;
@@ -65,6 +66,8 @@ public:
 	void SetIsAttack(bool set);
 	void Attack(float dt);
 
+	void SetIsWeaken(int w) { isWeaken = w; };
+	int GetIsWeaken() const { return isWeaken; };
 
 	virtual void Update(float dt) override;
 };

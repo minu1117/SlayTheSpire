@@ -3,6 +3,7 @@
 #include "../Scenes/SceneDev2_Play.h"
 #include "UiDev1.h"
 #include "../GameObject/Monster.h"
+#include "../Framework/SoundMgr.h"
 
 Player* PlayUi::ironClad;
 vector<Monster*> PlayUi::monster;
@@ -26,6 +27,19 @@ void PlayUi::Init()
 	uiObjList.push_back(choice1);
 	uiObjList.push_back(choice2);
 	uiObjList.push_back(choice3);
+	uiObjList.push_back(damageUp);
+	uiObjList.push_back(defenseUp);
+	uiObjList.push_back(energyUp);
+	uiObjList.push_back(hpUp);
+	uiObjList.push_back(getSkill);
+
+	uiObjList.push_back(rewordImage);
+	uiObjList.push_back(rewordText);
+	uiObjList.push_back(chest);
+	uiObjList.push_back(addGold);
+	uiObjList.push_back(addDamage);
+	uiObjList.push_back(addDefend);
+	uiObjList.push_back(addHp);
 
 	// Action Window
 	uiObjList.push_back(actionWindow);
@@ -34,6 +48,7 @@ void PlayUi::Init()
 	uiObjList.push_back(attackCount);
 	uiObjList.push_back(defendCount);
 	uiObjList.push_back(ternPassButton);
+	uiObjList.push_back(ternPassButtonHover);
 
 	// monster
 	uiObjList.push_back(monster[0]);
@@ -122,6 +137,14 @@ void PlayUi::Update(float dt)
 	else
 		SetDieUi(true);
 
+	//if (ironClad->GetIsWeaken() > 0)
+	//{
+	//	ironClad->SetNotWeakenDamage(ironClad->GetDamage());
+	//	ironClad->SetWeakenDamage(ironClad->GetDamage() / 2);
+	//	ironClad->SetDamage(ironClad->GetWeakenDamage());
+	//}
+
+
 	if (stage == Stage::Start)
 	{
 		MonsterSet(monster, false);
@@ -136,7 +159,10 @@ void PlayUi::Update(float dt)
 			SetClearUi(false);
 			ironClad->SetDefend(0);
 			ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+			randomReword = true;
 			stage = Stage::Map;
+			choiceOrder++;
+			SOUND_MGR->Play("sounds/uiClick.wav", false);
 		}
 	}
 
@@ -145,7 +171,10 @@ void PlayUi::Update(float dt)
 		SetMonsterStage(dt);
 	}
 	else
+	{
 		SetClearUi(false);
+		ternPassButtonHover->SetActive(false);
+	}
 
 	if (stage == Stage::Map)
 	{
@@ -162,13 +191,26 @@ void PlayUi::Update(float dt)
 
 	if (stage == Stage::Reword)
 	{
-
+		MonsterSet(monster, false);
+		SetActionUi(false);
+		RewordStage();
+	}
+	else
+	{
+		SetRewordMapUi(false);
+		SerRewordUi(false);
+		chest->SetTexture(*RESOURCE_MGR->GetTexture("graphics/largeChest.png"));
 	}
 
 	if (stage == Stage::Shop)
 	{
-
+		SetShopMapUi(true);
+		MonsterSet(monster, false);
+		SetActionUi(false);
+		ShopStage();
 	}
+	else
+		SetShopMapUi(false);
 
 	// Option Ui Control
 	if (giveupUi == false)
@@ -381,12 +423,27 @@ void PlayUi::PlayerTern(float dt)
 		{
 			int defCount = ironClad->GetDefendCount();
 
-			ironClad->SetDefend(defend += 5);
-			ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
-			ironClad->SetCurEnergy(energy -= 1);
-			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+			if (ironClad->GetIsWeaken() > 0)
+			{
+				int D = ironClad->GetAddDefend();
+				ironClad->SetWeakenDefend(D / 2);
 
-			ironClad->SetDefendCount(defCount -= 1);
+				ironClad->SetDefend(defend += ironClad->GetWeakenDefend());
+				ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+				ironClad->SetCurEnergy(energy -= 1);
+				ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+
+				ironClad->SetDefendCount(defCount -= 1);
+			}
+			else
+			{
+				ironClad->SetDefend(defend += ironClad->GetAddDefend());
+				ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+				ironClad->SetCurEnergy(energy -= 1);
+				ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+
+				ironClad->SetDefendCount(defCount -= 1);
+			}
 		}
 	}
 }
@@ -459,6 +516,7 @@ void PlayUi::OptionUiControl()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				SOUND_MGR->Play("sounds/uiClick.wav", false);
 				optionUi = false;
 			}
 		}
@@ -466,6 +524,7 @@ void PlayUi::OptionUiControl()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				SOUND_MGR->Play("sounds/uiClick.wav", false);
 				optionUi = true;
 			}
 		}
@@ -475,11 +534,13 @@ void PlayUi::OptionUiControl()
 		if (optionUi == true)
 		{
 			optionUi = false;
+			SOUND_MGR->Play("sounds/uiClick.wav", false);
 			SetOptionUi(false);
 		}
 		else
 		{
 			optionUi = true;
+			SOUND_MGR->Play("sounds/uiClick.wav", false);
 			SetOptionUi(true);
 		}
 	}
@@ -492,6 +553,7 @@ void PlayUi::OptionUiControl()
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
 				optionUi = false;
+				SOUND_MGR->Play("sounds/uiClick.wav", false);
 				SetOptionUi(false);
 			}
 		}
@@ -517,6 +579,7 @@ void PlayUi::MapUiControl()
 			{
 				if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 				{
+					SOUND_MGR->Play("sounds/mapIcon.ogg", false);
 					mapUi = false;
 				}
 			}
@@ -524,6 +587,7 @@ void PlayUi::MapUiControl()
 			{
 				if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 				{
+					SOUND_MGR->Play("sounds/mapIcon.ogg", false);
 					mapUi = true;
 				}
 			}
@@ -532,9 +596,15 @@ void PlayUi::MapUiControl()
 		if (InputMgr::GetKeyDown(Keyboard::Key::M) && dieOrGiveup->GetActive() == false)
 		{
 			if (mapUi == false)
+			{
+				SOUND_MGR->Play("sounds/mapIcon.ogg", false);
 				mapUi = true;
+			}
 			else
+			{
+				SOUND_MGR->Play("sounds/mapIcon.ogg", false);
 				mapUi = false;
+			}
 		}
 	}
 
@@ -550,6 +620,7 @@ void PlayUi::GiveUpUiControl()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				SOUND_MGR->Play("sounds/uiClick.wav", false);
 				giveupUi = true;
 			}
 		}
@@ -558,6 +629,7 @@ void PlayUi::GiveUpUiControl()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				SOUND_MGR->Play("sounds/uiClick.wav", false);
 				ironClad->SetAlive(false);
 				SetDieUi(true);
 			}
@@ -566,6 +638,7 @@ void PlayUi::GiveUpUiControl()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				SOUND_MGR->Play("sounds/uiClick.wav", false);
 				giveupUi = false;
 			}
 		}
@@ -613,7 +686,7 @@ void PlayUi::UiCreate()
 	{
 		monster.push_back(new Monster(43, 43, 0, 10, MonsterType::Easy));
 		monster[0]->SetAll(*RESOURCE_MGR->GetTexture("graphics/ironcladimage.png"),
-			{ windowSize.x / 1.5f, windowSize.y / 1.7f }, Origins::MC);
+			{ windowSize.x / 1.4f, windowSize.y / 1.7f }, Origins::MC);
 		monster[0]->SetScale(-1, 1);
 		monsterCount = monster.size();
 
@@ -667,6 +740,7 @@ void PlayUi::UiCreate()
 		// ����
 		{
 			ternPassButton = new SpriteObj();
+			ternPassButtonHover = new SpriteObj();
 			attackButton = new SpriteObj();
 			defendButton = new SpriteObj();
 			actionWindow = new SpriteObj();
@@ -725,6 +799,8 @@ void PlayUi::UiCreate()
 
 				ternPassButton->SetAll(*RESOURCE_MGR->GetTexture("graphics/ternPassButton.png"),
 					{ actionWindow->GetPos().x, actionWindow->GetPos().y }, Origins::MC);
+				ternPassButtonHover->SetAll(*RESOURCE_MGR->GetTexture("graphics/ternPassButtonHover.png"),
+					ternPassButton->GetPos(), Origins::MC);
 			}
 
 
@@ -776,7 +852,7 @@ void PlayUi::UiCreate()
 
 
 			confirmMessage->SetAll(*testConfirmMessage, windowSize * 0.5f, Origins::MC);
-			yesButton->SetAll(*testYesButton, { confirmMessage->GetPos().x - 100, confirmMessage->GetPos().y + confirmMessage->GetPos().y / 2 - 50 }, Origins::MC);
+			yesButton->SetAll(*testYesButton, { confirmMessage->GetPos().x - 100, confirmMessage->GetPos().y + 100 }, Origins::MC);
 			noButton->SetAll(*testNoButton, { yesButton->GetPos().x + 200, yesButton->GetPos().y }, Origins::MC);
 			confirmBackground->SetAll(*testOptionBackground, windowSize * 0.5f, Origins::MC);
 		}
@@ -796,7 +872,7 @@ void PlayUi::UiCreate()
 		curHp->SetAll(font, to_string(ironClad->GetCurHP()), 30, Color::Red, { gold->GetPos().x * 4 , gold->GetPos().y });
 		curHp->SetOrigin(Origins::MC);
 
-		maxHp->SetAll(font, to_string(ironClad->GetMaxHP()), 30, Color::Red, { curHp->GetPos().x + 40, curHp->GetPos().y });
+		maxHp->SetAll(font, to_string(ironClad->GetMaxHP()), 30, Color::Red, { curHp->GetPos().x + 50, curHp->GetPos().y });
 		maxHp->SetOrigin(Origins::MC);
 
 		// option icon
@@ -848,9 +924,6 @@ void PlayUi::UiCreate()
 		float questionMapIconYPos = 0.f;
 		float shopMapIconYPos = 0.f;
 		float rewordMapIconYPos = 0.f;
-
-		// test
-		randomMap = 0;
 
 		switch (randomMap)
 		{
@@ -931,7 +1004,42 @@ void PlayUi::UiCreate()
 		mainMenuButton = new SpriteObj();
 		mainMenuButton->SetAll(*RESOURCE_MGR->GetTexture("graphics/mainMenuButton.png"), { 0, 0}, Origins::MC);
 		mainMenuButton->SetPos({ monsterKilled->GetPos().x, monsterKilled->GetPos().y + mainMenuButton->GetSize().y * 2 });
+	}
 
+	// ShopStage
+	{
+		damageUp = new SpriteObj();
+		defenseUp = new SpriteObj();
+		energyUp = new SpriteObj();
+		hpUp = new SpriteObj();
+		getSkill = new SpriteObj();
+
+		damageUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/AttactCard.png"), {0, 0}, Origins::MC);
+		defenseUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/DefenseCard.png"), {0, 0}, Origins::MC);
+		energyUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/UtilCard.png"), {0, 0}, Origins::MC);
+		hpUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/UtilCard.png"), {0, 0}, Origins::MC);
+		getSkill->SetAll(*RESOURCE_MGR->GetTexture("graphics/ironcladSelect.png"), {0, 0}, Origins::MC);
+	}
+
+	// reword
+	{
+		rewordImage = new SpriteObj();
+		chest = new SpriteObj();
+		chest->SetAll(*RESOURCE_MGR->GetTexture("graphics/largeChest.png"), monster[0]->GetPos(), Origins::MC);
+		chest->SetScale(0.5f, 0.5f);
+		rewordImage->SetAll(*RESOURCE_MGR->GetTexture("graphics/rewardScreen.png"), { -500, 0}, Origins::MC);
+
+		addGold = new TextObj();
+		addDamage = new TextObj();
+		addDefend = new TextObj();
+		addHp = new TextObj();
+		rewordText = new TextObj();
+
+		addGold->SetAll(font, "", 40, Color::White, { -500,0 });
+		addDamage->SetAll(font, "", 40, Color::White, { -500,0 });
+		addDefend->SetAll(font, "", 40, Color::White, { -500,0 });
+		addHp->SetAll(font, "", 40, Color::White, { -500,0 });
+		rewordText->SetAll(font, "REWORD!", 80, Color::White, { -500,0 });
 	}
 }
 
@@ -975,6 +1083,10 @@ void PlayUi::HpControl()
 			MonsterSet(monster, false);
 		}
 	}
+
+	curHp->SetOrigin(Origins::MC);
+	maxHp->SetOrigin(Origins::MC);
+	ironCladCurHp->SetOrigin(Origins::TL);
 }
 
 void PlayUi::SetMonsterTern()
@@ -983,7 +1095,7 @@ void PlayUi::SetMonsterTern()
 	isMonsterTern = true;
 	monsterRandomPatternSetting = false;
 	isPlayerTern = false;
-	monsterPatternDelay = 1.f;
+	monsterPatternDelay = 2.f;
 }
 
 void PlayUi::SetClearUi(bool set)
@@ -1001,8 +1113,28 @@ void PlayUi::SetMonsterStage(float dt)
 	// Tern Pass
 	if (Button::ButtonOnRect(*cursor, *ternPassButton) && isPlayerTern == true && monster[0]->GetAlive() == true && dieOrGiveup->GetActive() == false)
 	{
+		isHover = true;
+		if (isHover == true)
+		{
+			if (uiHoverSoundPlay == true)
+			{
+				SOUND_MGR->Play("sounds/uiHover.wav", false);
+				uiHoverSoundPlay = false;
+			}
+			ternPassButtonHover->SetActive(true);
+		}
+
 		if (InputMgr::GetMouseButtonUp(Mouse::Left))
+		{
 			SetMonsterTern();
+			SOUND_MGR->Play("sounds/ternEnd.ogg", false);
+		}
+	}
+	else
+	{
+		uiHoverSoundPlay = true;
+		isHover = false;
+		ternPassButtonHover->SetActive(false);
 	}
 
 	// Monster Tern Control
@@ -1035,7 +1167,6 @@ void PlayUi::SetMonsterStage(float dt)
 			playerActionCountSet = true;
 		}
 		SetClearUi(true);
-		choiceOrder++;
 		monsterKillCount++;
 	}
 }
@@ -1049,6 +1180,7 @@ void PlayUi::EnterTheStage()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				SOUND_MGR->Play("sounds/mapSelect.ogg", false);
 				stage = Stage::Monster;
 				mapUi = false;
 			}
@@ -1058,6 +1190,7 @@ void PlayUi::EnterTheStage()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				SOUND_MGR->Play("sounds/mapSelect.ogg", false);
 				stage = Stage::Reword;
 				mapUi = false;
 			}
@@ -1067,6 +1200,7 @@ void PlayUi::EnterTheStage()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				SOUND_MGR->Play("sounds/mapSelect.ogg", false);
 				stage = Stage::Question;
 				mapUi = false;
 			}
@@ -1076,6 +1210,7 @@ void PlayUi::EnterTheStage()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				SOUND_MGR->Play("sounds/mapSelect.ogg", false);
 				stage = Stage::Shop;
 				mapUi = false;
 			}
@@ -1089,7 +1224,7 @@ void PlayUi::QuestionStage()
 	int randomStage = Utils::RandomRange(0, 5);
 	int randomMonsterHp = Utils::RandomRange(36, 72);
 	MonsterType randomMonsterLevel = (MonsterType)Utils::RandomRange(0, 3);
-	randomStage = 0; // Dev Mode
+
 	switch (randomStage)
 	{
 	case 0:
@@ -1138,6 +1273,224 @@ void PlayUi::QuestionStage()
 		stage = Stage::Reword;
 		mapUi = false;
 		break;
+	}
+}
+
+void PlayUi::ShopStage()
+{
+	Vector2f windowSize = (Vector2f)FRAMEWORK->GetWindowSize();
+
+	continueButton->SetActive(true);
+
+	damageUp->SetPos({ windowSize.x / 5, windowSize.y / 3 });
+	defenseUp->SetPos({ windowSize.x / 4, windowSize.y / 3 });
+	energyUp->SetPos({ windowSize.x / 2, windowSize.y / 3 });
+	hpUp->SetPos({ windowSize.x / 1.3f, windowSize.y / 3 });
+	getSkill->SetPos({ windowSize.x / 2, windowSize.y / 1.5f });
+
+	if (Button::ButtonOnRect(*cursor, *damageUp))
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 30)
+		{
+			ironClad->AddDamage(1);
+			ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage()));
+
+			ironClad->SetGold(ironClad->GetCurGold() - 30);
+			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
+			// 돈 사운드
+		}
+	}
+	if (Button::ButtonOnRect(*cursor, *energyUp))
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 50)
+		{
+			int e = ironClad->GetCurEnergy();
+			int maxe = ironClad->GetMaxEnergy();
+			ironClad->SetMaxEnergy(e += 1);
+			ironClad->SetCurEnergy(maxe += 1);
+
+			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+			ironCladMaxEnergy->SetText(to_string(ironClad->GetMaxEnergy()));
+
+			ironClad->SetGold(ironClad->GetCurGold() - 50);
+			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
+			// 돈 사운드
+		}
+	}
+	if (Button::ButtonOnRect(*cursor, *defenseUp))
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 30)
+		{
+			ironClad->SetAddDefend(ironClad->GetAddDefend() + 1);
+
+			ironClad->SetGold(ironClad->GetCurGold() - 30);
+			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
+			// 돈 사운드
+		}
+	}
+	if (Button::ButtonOnRect(*cursor, *hpUp))
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 20)
+		{
+			int hp = ironClad->GetCurHP();
+			int maxhp = ironClad->GetMaxHP();
+			ironClad->SetCurHP(hp += 10);
+			ironClad->SetMaxHP(maxhp += 10);
+
+			ironCladCurHp->SetText(to_string(ironClad->GetMaxHP()));
+			ironCladMaxHp->SetText("/ " + to_string(ironClad->GetMaxHP()));
+			curHp->SetText(to_string(ironClad->GetMaxHP()));
+			maxHp->SetText(to_string(ironClad->GetMaxHP()));
+
+			ironClad->SetGold(ironClad->GetCurGold() - 20);
+			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
+			// 돈 사운드
+		}
+	}
+	if (Button::ButtonOnRect(*cursor, *getSkill))
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 100)
+		{
+			// 미구현
+
+			ironClad->SetGold(ironClad->GetCurGold() - 100);
+			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
+			// 돈 사운드
+		}
+	}
+}
+
+void PlayUi::RewordStage()
+{
+	Vector2f windowSize = (Vector2f)FRAMEWORK->GetWindowSize();
+
+	SetRewordMapUi(true);
+	if (Button::ButtonOnRect(*cursor, *chest))
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+		{
+			chest->SetTexture(*RESOURCE_MGR->GetTexture("graphics/largeChestOpened.png"));
+			SerRewordUi(true);
+			rewordUi = true;
+		}
+	}
+
+	// 골드, 공++, 방++, 체력++
+	if (rewordImage->GetActive() == true && rewordUi == true)
+	{
+		if (randomReword == true)
+		{
+			randomChoice = Utils::RandomRange(0, 6);
+
+			getGold = Utils::RandomRange(10, 50);
+			getDamage = Utils::RandomRange(1, 3);
+			getDefend = Utils::RandomRange(1, 3);
+			getHp = Utils::RandomRange(3, 10);
+
+			addGold->SetText("Add Gold : " + to_string(getGold));
+			addDamage->SetText("Add Damage : " + to_string(getDamage));
+			addDefend->SetText("Add Defend : " + to_string(getDefend));
+			addHp->SetText("Heal : " + to_string(getHp));
+
+			addGold->SetOrigin(Origins::MC);
+			addDamage->SetOrigin(Origins::MC);
+			addDefend->SetOrigin(Origins::MC);
+			addHp->SetOrigin(Origins::MC);
+			rewordText->SetOrigin(Origins::MC);
+
+			rewordImage->SetPos(windowSize * 0.5f);
+			rewordText->SetPos({ rewordImage->GetPos().x, rewordImage->GetPos().y - (rewordText->GetSize().height * 5) });
+
+			randomReword = false;
+		}
+		continueButton->SetActive(true);
+		addGold->SetPos(windowSize * 0.5f);
+
+		switch (randomChoice)
+		{
+		case 0:
+			addDamage->SetActive(false);
+			addDefend->SetActive(false);
+			addHp->SetPos({ addGold->GetPos().x, addGold->GetPos().y + (addHp->GetSize().height * 3) });
+			break;
+		case 1:
+			addDamage->SetActive(false);
+			addDefend->SetPos({ addGold->GetPos().x, addGold->GetPos().y + (addDefend->GetSize().height * 3) });
+			addHp->SetPos({ addDefend->GetPos().x, addDefend->GetPos().y + (addHp->GetSize().height * 3) });
+			break;
+		case 2:
+			addDamage->SetPos({ addGold->GetPos().x, addGold->GetPos().y + (addDamage->GetSize().height * 3) });
+			addDefend->SetActive(false);
+			addHp->SetPos({ addDefend->GetPos().x, addDefend->GetPos().y + (addHp->GetSize().height * 3) });
+			break;
+		case 3:
+			addDamage->SetActive(false);
+			addDefend->SetActive(false);
+			addHp->SetActive(false);
+			break;
+		case 4:
+			addDamage->SetPos({ addGold->GetPos().x, addGold->GetPos().y + (addDamage->GetSize().height * 3) });
+			addDefend->SetActive(false);
+			addHp->SetActive(false);
+			break;
+		case 5:
+			addDamage->SetPos({ addGold->GetPos().x, addGold->GetPos().y + (addDamage->GetSize().height * 3) });
+			addDefend->SetPos({ addDamage->GetPos().x, addDamage->GetPos().y + (addDefend->GetSize().height * 3) });
+			addHp->SetActive(false);
+			break;
+		}
+
+		if (Button::ButtonOnRect(*cursor, *addGold) && addGold->GetActive() == true)
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				ironClad->SetGold(ironClad->GetCurGold() + getGold);
+				gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
+				addGold->SetActive(false);
+			}
+		}
+		if (Button::ButtonOnRect(*cursor, *addDamage) && addDamage->GetActive() == true)
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				ironClad->AddDamage(getDamage);
+				ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage()));
+				addDamage->SetActive(false);
+			}
+		}
+		if (Button::ButtonOnRect(*cursor, *addDefend) && addDefend->GetActive() == true)
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				ironClad->SetAddDefend(ironClad->GetAddDefend() + getDefend);
+				addDefend->SetActive(false);
+			}
+		}
+		if (Button::ButtonOnRect(*cursor, *addHp) && addHp->GetActive() == true)
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				int hp = ironClad->GetCurHP();
+
+				if (hp + getHp <= ironClad->GetMaxHP())
+				{
+					ironClad->SetCurHP(hp += getHp);
+					ironCladCurHp->SetText(to_string(ironClad->GetMaxHP()));
+					curHp->SetText(to_string(ironClad->GetMaxHP()));
+				}
+				else if (hp + getHp > ironClad->GetMaxHP())
+				{
+					int maxh = ironClad->GetMaxHP();
+					int excessHpCalculation = (hp + getHp) - maxh;
+
+					ironClad->SetCurHP(hp += getHp - excessHpCalculation);
+					ironCladCurHp->SetText(to_string(ironClad->GetMaxHP()));
+					curHp->SetText(to_string(ironClad->GetMaxHP()));
+				}
+
+				addHp->SetActive(false);
+			}
+		}
 	}
 }
 
@@ -1250,11 +1603,7 @@ void PlayUi::StartMapPlayerUpgrade(float dt)
 				curHp->SetText(to_string(ironClad->GetMaxHP()));
 				maxHp->SetText(to_string(ironClad->GetMaxHP()));
 
-
-				int d = ironClad->GetDamage();
 				ironClad->AddDamage(2);
-
-
 				ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage()));
 
 				choice1->SetActive(false);
@@ -1302,9 +1651,34 @@ void PlayUi::SetDieUi(bool set)
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
 				ResetPlayUi();
+				UiDev1::SetStartSound(true);
 			}
 		}
 	}
+}
+
+void PlayUi::SetShopMapUi(bool set)
+{
+	damageUp->SetActive(set);
+	defenseUp->SetActive(set);
+	energyUp->SetActive(set);
+	hpUp->SetActive(set);
+	getSkill->SetActive(set);
+}
+
+void PlayUi::SetRewordMapUi(bool set)
+{
+	chest->SetActive(set);
+}
+
+void PlayUi::SerRewordUi(bool set)
+{
+	addGold->SetActive(set);
+	addDamage->SetActive(set);
+	addDefend->SetActive(set);
+	addHp->SetActive(set);
+	rewordImage->SetActive(set);
+	rewordText->SetActive(set);
 }
 
 void PlayUi::ResetPlayUi()
@@ -1330,4 +1704,5 @@ void PlayUi::ResetPlayUi()
 	giveupUi = false;
 	choiceOrder = 0;
 	stage = Stage::Start;
+	SOUND_MGR->StopAll();
 }

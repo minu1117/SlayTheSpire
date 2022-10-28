@@ -1,11 +1,13 @@
 #include "UiDev1.h"
 #include "../InlcludeHeader/UiIncludeHeader.h"
 #include "../Scenes/SceneDev1.h"
+#include "../Framework/SoundMgr.h"
 
 SpriteObj* UiDev1::cursor = new SpriteObj();
 SpriteObj* UiDev1::PlayButton = new SpriteObj();
 SpriteObj* UiDev1::ExitButton = new SpriteObj();
 bool UiDev1::titleUi = true;
+bool UiDev1::startSound = true;
 
 UiDev1::UiDev1(Scene* scene)
 	: UiMgr(scene)
@@ -21,9 +23,7 @@ void UiDev1::Init()
 	Vector2i getSize = FRAMEWORK->GetWindowSize();
 	Vector2f size = { (float)getSize.x,  (float)getSize.y };
 	Font& font = *RESOURCE_MGR->GetFont("fonts/Mabinogi_Classic_TTF.ttf");
-	auto testBackground = RESOURCE_MGR->GetTexture("graphics/testbackground.png");
-	auto testButton1 = RESOURCE_MGR->GetTexture("graphics/UtilCard.png");
-	auto testButton2 = RESOURCE_MGR->GetTexture("graphics/DefenseCard.png");
+	auto testBackground = RESOURCE_MGR->GetTexture("graphics/title.png");
 	auto playButtonImage = RESOURCE_MGR->GetTexture("graphics/PlayButton.png");
 	auto startButtonImage = RESOURCE_MGR->GetTexture("graphics/StartButton.png");
 	auto exitButtonImage = RESOURCE_MGR->GetTexture("graphics/ExitButton.png");
@@ -56,27 +56,38 @@ void UiDev1::Init()
 			StartButton->SetAll(*startButtonImage, {100, 800}, Origins::MC);
 			uiObjList.push_back(StartButton);
 
-			ExitButton->SetAll(*exitButtonImage, { StartButton->GetPos().x, StartButton->GetPos().y + StartButton->GetSize().y }, Origins::MC);
+			ExitButton->SetAll(*exitButtonImage, { StartButton->GetPos().x, StartButton->GetPos().y + StartButton->GetSize().y + 50 }, Origins::MC);
 			uiObjList.push_back(ExitButton);
-		}
-
-		// temp
-		{
-			startText = new TextObj();
-			startText->SetAll(font, "START", 40, Color::Blue, { 0, 0 });
-			uiObjList.push_back(startText);
 		}
 	}
 
 	// ModeSelect UI
 	{
 		modeSelectBackground = new SpriteObj();
+		normalMode = new SpriteObj();
+		normalModeButton = new SpriteObj();
+		normalModeFrame = new SpriteObj();
+		normalModeName = new TextObj();
+		normalModeExplanation = new TextObj();
+
 		modeSelectBackground->SetAll(*normalModeBackground, { size.x / 2, size.y / 2 }, Origins::MC);
 		uiObjList.push_back(modeSelectBackground);
 
-		normalMode = new SpriteObj();
 		normalMode->SetAll(*normalModeImage, { size.x / 2, size.y / 2 }, Origins::MC);
 		uiObjList.push_back(normalMode);
+
+		normalModeButton->SetAll(*RESOURCE_MGR->GetTexture("graphics/normalmodeimage.png"), 
+			{0, 0}, Origins::MC);
+		normalModeButton->SetPos({ normalMode->GetPos().x, normalMode->GetPos().y - normalModeButton->GetSize().y / 1.5f - 5});
+		normalModeFrame->SetAll(*RESOURCE_MGR->GetTexture("graphics/menuPanelFrame.png"), normalMode->GetPos(), Origins::MC);
+
+		normalModeName->SetAll(font, "NORMAL", 50, Color::White, { normalMode->GetPos().x, normalMode->GetPos().y - normalMode->GetPos().y / 2 - 40});
+		normalModeExplanation->SetAll(font, "Normal Mode", 50, Color::White, { normalMode->GetPos().x, normalMode->GetPos().y + 100 });
+
+		uiObjList.push_back(normalModeButton);
+		uiObjList.push_back(normalModeFrame);
+		uiObjList.push_back(normalModeName);
+		uiObjList.push_back(normalModeExplanation);
 	}
 
 	// CharSelectScene
@@ -119,6 +130,7 @@ void UiDev1::Reset()
 	modeSelectUi = false;
 	charSelectUi = false;
 	StartUi = false;
+	SOUND_MGR->StopAll();
 }
 
 void UiDev1::Update(float dt)
@@ -131,6 +143,11 @@ void UiDev1::Update(float dt)
 	// Title UI
 	if (titleUi == true)
 	{
+		if (startSound == true)
+		{
+			SOUND_MGR->Play("sounds/Menu.ogg", true);
+			startSound = false;
+		}
 		SetTitleUi(true);
 		if (Button::ButtonOnRect(*cursor, *StartButton))
 		{
@@ -139,8 +156,28 @@ void UiDev1::Update(float dt)
 				SetTitleUi(false);
 				titleUi = false;
 				modeSelectUi = true;
+				SOUND_MGR->Play("sounds/uiClick.wav", false);
+			}
+			if (uiHover == true)
+			{
+				SOUND_MGR->Play("sounds/uiHover.wav", false);
+				uiHover = false;
 			}
 		}
+		else if (Button::ButtonOnRect(*cursor, *ExitButton))
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				SOUND_MGR->Play("sounds/uiClick.wav", false);
+			}
+			if (uiHover == true)
+			{
+				SOUND_MGR->Play("sounds/uiHover.wav", false);
+				uiHover = false;
+			}
+		}
+		else
+			uiHover = true;
 	}
 
 	// ModeSelect UI
@@ -153,17 +190,30 @@ void UiDev1::Update(float dt)
 			{
 				modeSelectUi = false;
 				charSelectUi = true;
+				SOUND_MGR->Play("sounds/uiClick.wav", false);
+			}
+			if (uiHover == true)
+			{
+				SOUND_MGR->Play("sounds/uiHover.wav", false);
+				uiHover = false;
 			}
 		}
-
-		if (Button::ButtonOnRect(*cursor, *backButton))
+		else if (Button::ButtonOnRect(*cursor, *backButton))
 		{
+			if (uiHover == true)
+			{
+				SOUND_MGR->Play("sounds/uiHover.wav", false);
+				uiHover = false;
+			}
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
 				modeSelectUi = false;
 				titleUi = true;
+				SOUND_MGR->Play("sounds/uiClick.wav", false);
 			}
 		}
+		else
+			uiHover = true;
 	}
 	else
 	{
@@ -176,22 +226,48 @@ void UiDev1::Update(float dt)
 		modeSelectBackground->SetActive(true);
 		backButton->SetActive(true);
 		SetCharSelectUi(true);
-
 		if (Button::ButtonOnRect(*cursor, *backButton))
 		{
+			if (uiHover == true)
+			{
+				SOUND_MGR->Play("sounds/uiHover.wav", false);
+				uiHover = false;
+			}
+
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
 				charSelectUi = false;
 				modeSelectUi = true;
+				SOUND_MGR->Play("sounds/uiClick.wav", false);
 			}
 		}
-		if (Button::ButtonOnRect(*cursor, *charSelect))
+		else if (Button::ButtonOnRect(*cursor, *charSelect))
 		{
+			if (uiHover == true)
+			{
+				SOUND_MGR->Play("sounds/uiHover.wav", false);
+				uiHover = false;
+			}
+
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
 				StartUi = true;
+				SOUND_MGR->Play("sounds/ironCladSelect.ogg", false);
 			}
 		}
+		else if (Button::ButtonOnRect(*cursor, *PlayButton) && PlayButton->GetActive() == true)
+		{
+			if (uiHover == true)
+			{
+				SOUND_MGR->Play("sounds/uiHover.wav", false);
+				uiHover = false;
+			}
+
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+				SOUND_MGR->Play("sounds/uiClick.wav", false);
+		}
+		else
+			uiHover = true;
 	}
 	else
 	{
@@ -207,6 +283,7 @@ void UiDev1::Update(float dt)
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
 				StartUi = false;
+				SOUND_MGR->Play("sounds/uiClick.wav", false);
 			}
 		}
 	}
@@ -252,6 +329,13 @@ void UiDev1::SetModeSelectUi(bool set)
 	modeSelectBackground->SetActive(set);
 	backButton->SetActive(set);
 	normalMode->SetActive(set);
+	normalModeButton->SetActive(set);
+	normalModeFrame->SetActive(set);
+	normalModeName->SetActive(set);
+	normalModeExplanation->SetActive(set);
+
+	normalModeName->SetOrigin(Origins::MC);
+	normalModeExplanation->SetOrigin(Origins::MC);
 }
 
 void UiDev1::SetCharSelectUi(bool set)
@@ -264,5 +348,3 @@ void UiDev1::SetStartUi(bool set)
 	charSelectBackgruond->SetActive(set);
 	PlayButton->SetActive(set);
 }
-
-

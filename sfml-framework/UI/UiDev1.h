@@ -6,23 +6,30 @@
 class UiDev1 : public UiMgr
 {
 protected:
-	TextObj* startText;
 	SpriteObj* background;
 
 	SpriteObj* backButton; // 뒤로 버튼
 	SpriteObj* StartButton;
 
 	SpriteObj* normalMode;
+	SpriteObj* normalModeButton;
+	SpriteObj* normalModeFrame;
+	TextObj* normalModeName;
+	TextObj* normalModeExplanation;
+
+
 	SpriteObj* modeSelectBackground; // 반투명 검정 전체화면 이미지
 	SpriteObj* charSelect;
 
 	SpriteObj* charSelectBackgruond; // 캐릭터 설명 전체화면 이미지
 	SpriteObj* ironCladBackground;
 
+	
 
 	bool modeSelectUi = false;
 	bool charSelectUi = false;
 	bool StartUi = false;
+	bool uiHover = true;
 
 public:
 	UiDev1(Scene* scene);
@@ -43,6 +50,8 @@ public:
 	static SpriteObj* GetExitButton();
 
 	static bool titleUi;
+	static bool startSound;
+	static void SetStartSound(bool set) { startSound = set; };
 
 	void SetTitleUi(bool set);
 	void SetModeSelectUi(bool set);

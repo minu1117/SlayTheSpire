@@ -20,13 +20,13 @@ bool Button::ButtonOnRect(const SpriteObj& cursor, const SpriteObj& rect)
 
 bool Button::ButtonOnRect(const SpriteObj& cursor, const TextObj& rect)
 {
-	//if (cursor.GetPos().y - cursor.GetSize().y + 10 >= rect.GetPos().y - rect.GetSize().y / 2 &&
-	//	cursor.GetPos().y - cursor.GetSize().y + 10 <= rect.GetPos().y + rect.GetSize().y / 2 &&
-	//	cursor.GetPos().x - cursor.GetSize().x + 10 >= rect.GetPos().x - rect.GetSize().x / 2 &&
-	//	cursor.GetPos().x - cursor.GetSize().x + 10 <= rect.GetPos().x + rect.GetSize().x / 2)
-	//{
-	//	return true;
-	//}
-	//else
+	if (cursor.GetPos().y - cursor.GetSize().y + 10 >= rect.GetPos().y - rect.GetSize().height / 2 &&
+		cursor.GetPos().y - cursor.GetSize().y + 10 <= rect.GetPos().y + rect.GetSize().height / 2 &&
+		cursor.GetPos().x - cursor.GetSize().x + 10 >= rect.GetPos().x - rect.GetSize().width / 2 &&
+		cursor.GetPos().x - cursor.GetSize().x + 10 <= rect.GetPos().x + rect.GetSize().width / 2)
+	{
+		return true;
+	}
+	else
 		return false;
 }
