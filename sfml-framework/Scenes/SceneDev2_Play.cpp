@@ -62,7 +62,7 @@ void SceneDev2_Play::Update(float dt)
 
 	if (Button::ButtonOnRect(*UiDev1::GetCursor(), *PlayUi::GetMainMenuButton()))
 	{
-		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && PlayUi::GetMainMenuButton()->GetActive() == true)
 		{
 			SCENE_MGR->ChangeScene(Scenes::Dev1);
 		}

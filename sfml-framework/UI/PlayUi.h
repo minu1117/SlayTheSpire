@@ -142,6 +142,7 @@ protected:
 	int getDamage;
 	int getDefend;
 	int getHp;
+	bool mapChoice = false;
 
 public:
 	PlayUi(Scene* scene);
@@ -182,7 +183,7 @@ public:
 
 	void SetMonsterStage(float dt);
 
-	void EnterTheStage();
+	void EnterTheStage(float dt);
 
 	void QuestionStage();
 

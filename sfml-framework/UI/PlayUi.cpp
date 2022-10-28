@@ -130,7 +130,7 @@ void PlayUi::Update(float dt)
 
 	// Player / Monster HP, HP Bar Control
 	HpControl();
-	EnterTheStage();
+	EnterTheStage(dt);
 
 	if (ironClad->GetAlive() == true)
 		SetDieUi(false);
@@ -156,6 +156,29 @@ void PlayUi::Update(float dt)
 	{
 		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 		{
+			if (stage == Stage::Monster)
+			{
+				int randomStage = Utils::RandomRange(0, 5);
+				int randomMonsterHp = Utils::RandomRange(36, 72);
+				MonsterType randomMonsterLevel = (MonsterType)Utils::RandomRange(0, 3);
+
+				monster[0]->SetMonster(randomMonsterHp, randomMonsterHp, 0, 0, randomMonsterLevel);
+				monster[0]->SetAlive(true);
+				MonsterSet(monster, true);
+
+				SetNextMonsterAction();
+				monster[0]->SetDamage(monster[0]->GetDamage());
+
+				monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+				monsterMaxHp->SetText("/ " + to_string(monster[0]->GetMaxHp()));
+				monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
+
+				ironClad->SetCurEnergy(ironClad->GetMaxEnergy());
+				ironClad->SetMaxEnergy(ironClad->GetMaxEnergy());
+				ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+				monsterCount = monster.size();
+			}
+
 			SetClearUi(false);
 			ironClad->SetDefend(0);
 			ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
@@ -625,7 +648,7 @@ void PlayUi::GiveUpUiControl()
 			}
 		}
 
-		if (Button::ButtonOnRect(*cursor, *yesButton))
+		else if (Button::ButtonOnRect(*cursor, *yesButton))
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
@@ -634,7 +657,8 @@ void PlayUi::GiveUpUiControl()
 				SetDieUi(true);
 			}
 		}
-		if (Button::ButtonOnRect(*cursor, *noButton))
+
+		else if (Button::ButtonOnRect(*cursor, *noButton))
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
@@ -1171,18 +1195,19 @@ void PlayUi::SetMonsterStage(float dt)
 	}
 }
 
-void PlayUi::EnterTheStage()
+void PlayUi::EnterTheStage(float dt)
 {
+	choiceDelay -= dt;
+
 	if (monsterMapIcon->GetActive() == true && stage == Stage::Map)
 	{
-
 		if (Button::ButtonOnRect(*cursor, *monsterMapIcon) && monsterMapOrder == choiceOrder)
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				choiceDelay = 0.5f;
 				SOUND_MGR->Play("sounds/mapSelect.ogg", false);
-				stage = Stage::Monster;
-				mapUi = false;
+				mapChoice = true;
 			}
 		}
 
@@ -1190,9 +1215,9 @@ void PlayUi::EnterTheStage()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				choiceDelay = 0.5f;
 				SOUND_MGR->Play("sounds/mapSelect.ogg", false);
-				stage = Stage::Reword;
-				mapUi = false;
+				mapChoice = true;
 			}
 		}
 
@@ -1200,9 +1225,9 @@ void PlayUi::EnterTheStage()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				choiceDelay = 0.5f;
 				SOUND_MGR->Play("sounds/mapSelect.ogg", false);
-				stage = Stage::Question;
-				mapUi = false;
+				mapChoice = true;
 			}
 		}
 
@@ -1210,10 +1235,36 @@ void PlayUi::EnterTheStage()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				choiceDelay = 0.5f;
 				SOUND_MGR->Play("sounds/mapSelect.ogg", false);
-				stage = Stage::Shop;
-				mapUi = false;
+				mapChoice = true;
 			}
+		}
+
+
+		if (choiceDelay <= 0.f && monsterMapOrder == choiceOrder && mapChoice == true)
+		{
+			stage = Stage::Monster;
+			mapUi = false;
+			mapChoice = false;
+		}
+		if (choiceDelay <= 0.f && rewordMapOrder == choiceOrder && mapChoice == true)
+		{
+			stage = Stage::Reword;
+			mapUi = false;
+			mapChoice = false;
+		}
+		if (choiceDelay <= 0.f && shopMapOrder == choiceOrder && mapChoice == true)
+		{
+			stage = Stage::Shop;
+			mapUi = false;
+			mapChoice = false;
+		}
+		if (choiceDelay <= 0.f && questionMapOrder == choiceOrder && mapChoice == true)
+		{
+			stage = Stage::Question;
+			mapUi = false;
+			mapChoice = false;
 		}
 	}
 	// boss
@@ -1251,6 +1302,10 @@ void PlayUi::QuestionStage()
 		monster[0]->SetMonster(randomMonsterHp, randomMonsterHp, 10, 0, randomMonsterLevel);
 		monster[0]->SetAlive(true);
 		MonsterSet(monster, true);
+
+		SetNextMonsterAction();
+		monster[0]->SetDamage(monster[0]->GetDamage());
+
 		monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
 		monsterMaxHp->SetText("/ " + to_string(monster[0]->GetMaxHp()));
 		monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
@@ -1266,7 +1321,7 @@ void PlayUi::QuestionStage()
 		mapUi = false;
 		break;
 	case 3:
-		stage = Stage::Shop;
+		stage = Stage::Reword;
 		mapUi = false;
 		break;
 	case 4:
@@ -1337,9 +1392,9 @@ void PlayUi::ShopStage()
 			ironClad->SetCurHP(hp += 10);
 			ironClad->SetMaxHP(maxhp += 10);
 
-			ironCladCurHp->SetText(to_string(ironClad->GetMaxHP()));
+			ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
 			ironCladMaxHp->SetText("/ " + to_string(ironClad->GetMaxHP()));
-			curHp->SetText(to_string(ironClad->GetMaxHP()));
+			curHp->SetText(to_string(ironClad->GetCurHP()));
 			maxHp->SetText(to_string(ironClad->GetMaxHP()));
 
 			ironClad->SetGold(ironClad->GetCurGold() - 20);
@@ -1347,6 +1402,7 @@ void PlayUi::ShopStage()
 			// 돈 사운드
 		}
 	}
+
 	if (Button::ButtonOnRect(*cursor, *getSkill))
 	{
 		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 100)
@@ -1648,7 +1704,7 @@ void PlayUi::SetDieUi(bool set)
 
 		if (Button::ButtonOnRect(*cursor, *mainMenuButton))
 		{
-			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && mainMenuButton->GetActive() == true)
 			{
 				ResetPlayUi();
 				UiDev1::SetStartSound(true);
