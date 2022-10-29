@@ -19,6 +19,8 @@ void Monster::SetMonster(int curH, int maxH, int defend, float damage, MonsterTy
 
 void Monster::Pattern(int pattern, float dt)
 {
+	float df = Utils::RandomRange(5, 15);
+
 	switch (pattern)
 	{
 	case 0:
@@ -32,9 +34,13 @@ void Monster::Pattern(int pattern, float dt)
 		patternType = MonsterPattern::Attack;
 		break;
 	case 2:
-		float df = Utils::RandomRange(5, 15);
 		SetDefend(defend + df);
 		patternType = MonsterPattern::Defence;
+		break;
+	case 3:
+		SetIsAttack(true);
+		Attack(dt);
+		patternType = MonsterPattern::Weaken;
 		break;
 	}
 }

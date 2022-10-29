@@ -5,7 +5,7 @@ enum class MonsterPattern
 {
 	Attack,
 	Defence,
-	// ... etc
+	Weaken,
 };
 
 enum class MonsterType
@@ -42,20 +42,20 @@ public:
 	Monster(int curH, int maxH, int defend, float damage, MonsterType t);
 	virtual ~Monster() {};
 
-	void SetCurHp(float hp) { curHP = hp; };
-	int GetCurHp() const { return curHP; };
+	virtual void SetCurHp(float hp) { curHP = hp; };
+	virtual int GetCurHp() const { return curHP; };
 
-	void SetMaxHp(float hp) { maxHP = hp; };
-	int GetMaxHp() const { return maxHP; };
+	virtual void SetMaxHp(float hp) { maxHP = hp; };
+	virtual int GetMaxHp() const { return maxHP; };
 
-	void SetDefend(float df) { defend = df; };
-	int GetDefend() const { return defend; };
+	virtual void SetDefend(float df) { defend = df; };
+	virtual int GetDefend() const { return defend; };
 
-	void SetDamage(float dmg) { damage = dmg; };
-	float GetDamage() const { return damage; };
+	virtual void SetDamage(float dmg) { damage = dmg; };
+	virtual float GetDamage() const { return damage; };
 	
-	bool GetAlive() const { return isAlive; };
-	void SetAlive(bool set) { isAlive = set; };
+	virtual bool GetAlive() const { return isAlive; };
+	virtual void SetAlive(bool set) { isAlive = set; };
 
 	void SetMonster(int curH, int maxH, int defend, float damage, MonsterType t);
 
@@ -66,8 +66,8 @@ public:
 	void SetIsAttack(bool set);
 	void Attack(float dt);
 
-	void SetIsWeaken(int w) { isWeaken = w; };
-	int GetIsWeaken() const { return isWeaken; };
+	virtual void SetIsWeaken(int w) { isWeaken = w; };
+	virtual int GetIsWeaken() const { return isWeaken; };
 
 	virtual void Update(float dt) override;
 };

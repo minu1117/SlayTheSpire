@@ -323,30 +323,10 @@ void PlayUi::SetGiveUpUi(bool set)
 
 void PlayUi::MonsterAttack()
 {
-	if (ironClad->GetDefend() > 0)
-	{
-		if (ironClad->GetDefend() >= monster[0]->GetDamage())
-		{
-			int defend = ironClad->GetDefend();
-			ironClad->SetDefend(defend -= monster[0]->GetDamage());
-			ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
-		}
-		else if (ironClad->GetDefend() < monster[0]->GetDamage())
-		{
-			int piercingDamage = monster[0]->GetDamage() - ironClad->GetDefend();
-			ironClad->SetDefend(0);
-			ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
-			ironClad->SetCurHP(ironClad->GetCurHP() - piercingDamage);
-			ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
-			curHp->SetText(to_string(ironClad->GetCurHP()));
-		}
-	}
-	else
-	{
-		ironClad->SetCurHP(ironClad->GetCurHP() - monster[0]->GetDamage());
-		ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
-		curHp->SetText(to_string(ironClad->GetCurHP()));
-	}
+	if (monster[0]->GetIsWeaken() == 0)
+		MonsterAttackDamage(monster[0]->GetDamage());
+	else if (monster[0]->GetIsWeaken() > 0)
+		MonsterAttackDamage(monster[0]->GetDamage() / 2);
 }
 
 void PlayUi::PlayerAttack(float dt, Skill skill)
@@ -356,54 +336,29 @@ void PlayUi::PlayerAttack(float dt, Skill skill)
 
 	if (skill == Skill::Normal)
 	{
-		if (monster[0]->GetDefend() > 0)
-		{
-			if (monster[0]->GetDefend() >= ironClad->GetDamage())
-			{
-				int defend = monster[0]->GetDefend();
-				monster[0]->SetDefend(defend -= ironClad->GetDamage());
-				monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
-			}
-			else if (monster[0]->GetDefend() < ironClad->GetDamage())
-			{
-				int piercingDamage = ironClad->GetDamage() - monster[0]->GetDefend();
-				monster[0]->SetDefend(0);
-				monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
-				monster[0]->SetCurHp(monster[0]->GetCurHp() - piercingDamage);
-				monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
-			}
-		}
+		if (ironClad->GetIsWeaken() > 0)
+			PlayerAttackDamage(ironClad->GetDamage() / 2);
 		else
-		{
-			monster[0]->SetCurHp(monster[0]->GetCurHp() - ironClad->GetDamage());
-			monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
-		}
+			PlayerAttackDamage(ironClad->GetDamage());
 	}
 	else if (skill == Skill::Smite)
 	{
-		if (monster[0]->GetDefend() > 0)
-		{
-			if (monster[0]->GetDefend() >= ironClad->GetDamage() * 4)
-			{
-				int defend = monster[0]->GetDefend();
-				monster[0]->SetDefend(defend -= ironClad->GetDamage() * 4);
-				monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
-			}
-			else if (monster[0]->GetDefend() < ironClad->GetDamage() * 4)
-			{
-				int piercingDamage = ironClad->GetDamage() * 4 - monster[0]->GetDefend();
-				monster[0]->SetDefend(0);
-				monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
-				monster[0]->SetCurHp(monster[0]->GetCurHp() - piercingDamage);
-				monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
-				monster[0]->SetIsWeaken(monster[0]->GetIsWeaken() + 2);
-			}
-		}
+		if (ironClad->GetIsWeaken() > 0)
+			PlayerAttackDamage(ironClad->GetDamage() + 5 / 2);
 		else
-		{
-			monster[0]->SetCurHp(monster[0]->GetCurHp() - ironClad->GetDamage() * 4);
-			monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
-		}
+			PlayerAttackDamage(ironClad->GetDamage() + 5);
+
+		monster[0]->SetIsWeaken(monster[0]->GetIsWeaken() + 2);
+
+		if (randomMonsterPattern <= 1)
+			monsterDamage->SetText("A : " + to_string((int)monster[0]->GetDamage() / 2));
+	}
+	else if (skill == Skill::clubbing)
+	{
+		if (ironClad->GetIsWeaken() > 0)
+			PlayerAttackDamage(ironClad->GetDamage() * 4 / 2);
+		else
+			PlayerAttackDamage(ironClad->GetDamage() * 4);
 	}
 }
 
@@ -550,7 +505,7 @@ void PlayUi::PlayerTern(float dt)
 
 void PlayUi::SetNextMonsterAction()
 {
-	randomMonsterPattern = Utils::RandomRange(0, 3);
+	randomMonsterPattern = Utils::RandomRange(0, 4);
 	if (randomMonsterPattern <= 1)
 	{
 		int setDamage = 0;
@@ -572,12 +527,23 @@ void PlayUi::SetNextMonsterAction()
 		}
 
 		monsterPattern->SetText("ATTACK");
-		monsterDamage->SetText("A : " + to_string((int)monster[0]->GetDamage()));
+
+		if (monster[0]->GetIsWeaken() == 0)
+			monsterDamage->SetText("A : " + to_string((int)monster[0]->GetDamage()));
+		else
+			monsterDamage->SetText("A : " + to_string((int)monster[0]->GetDamage() / 2));
+
 		monsterDamage->SetActive(true);
 	}
-	else
+	else if (randomMonsterPattern == 2)
 	{
 		monsterPattern->SetText("DEFENCE");
+		monsterDamage->SetText("");
+		monsterDamage->SetActive(false);
+	}
+	else if (randomMonsterPattern == 3)
+	{
+		monsterPattern->SetText("Status Ailment");
 		monsterDamage->SetText("");
 		monsterDamage->SetActive(false);
 	}
@@ -588,11 +554,33 @@ void PlayUi::SetNextMonsterAction()
 
 void PlayUi::MonsterAction(float dt)
 {
-	monster[0]->Pattern(randomMonsterPattern, dt);
-	if (monster[0]->GetPattern() == MonsterPattern::Attack)
-		MonsterAttack();
+	if (ironClad->GetIsWeaken() > 0)
+		ironClad->SetIsWeaken(ironClad->GetIsWeaken() - 1);
+	if (ironClad->GetIsWeaken() == 0)
+		ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage()));
 
-	monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+	if (stage == Stage::Monster)
+	{
+		monster[0]->Pattern(randomMonsterPattern, dt);
+		if (monster[0]->GetPattern() == MonsterPattern::Attack)
+			MonsterAttack();
+
+		if (monster[0]->GetPattern() == MonsterPattern::Weaken)
+		{
+			ironClad->SetIsWeaken(ironClad->GetIsWeaken() + 1);
+			ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage() / 2));
+		}
+
+		monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+	}
+	if (stage == Stage::Boss)
+	{
+		//monster[0]->Pattern(randomMonsterPattern, dt);
+		//if (monster[0]->GetPattern() == MonsterPattern::Attack)
+			//MonsterAttack();
+
+		//monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+	}
 
 	ironClad->SetCurEnergy(ironClad->GetMaxEnergy());
 	ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
@@ -602,8 +590,11 @@ void PlayUi::MonsterAction(float dt)
 	playerActionCountSet = true;
 	ternPassButton->SetActive(true);
 
-	// ���� �ð� �ڿ� �� ������� �Ϸ��� �� �� ����������...
-	// ������ �׳� �����
+	if (monster[0]->GetIsWeaken() > 0)
+		monster[0]->SetIsWeaken(monster[0]->GetIsWeaken() - 1);	
+
+	cout << ironClad->GetIsWeaken() << endl;
+
 	ironClad->SetDefend(0);
 	ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
 }
@@ -1860,4 +1851,58 @@ void PlayUi::SetAttackSkillUi(bool set)
 {
 	normalAttackButton->SetActive(set);
 	attackSkillButton1->SetActive(set);
+}
+
+void PlayUi::PlayerAttackDamage(int damage)
+{
+	if (monster[0]->GetDefend() > 0)
+	{
+		if (monster[0]->GetDefend() >= damage)
+		{
+			int defend = monster[0]->GetDefend();
+			monster[0]->SetDefend(defend -= damage);
+			monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+		}
+		else if (monster[0]->GetDefend() < damage)
+		{
+			int piercingDamage = damage - monster[0]->GetDefend();
+			monster[0]->SetDefend(0);
+			monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+			monster[0]->SetCurHp(monster[0]->GetCurHp() - piercingDamage);
+			monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
+		}
+	}
+	else
+	{
+		monster[0]->SetCurHp(monster[0]->GetCurHp() - damage);
+		monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
+	}
+}
+
+void PlayUi::MonsterAttackDamage(int damage)
+{
+	if (ironClad->GetDefend() > 0)
+	{
+		if (ironClad->GetDefend() >= damage)
+		{
+			int defend = ironClad->GetDefend();
+			ironClad->SetDefend(defend -= damage);
+			ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+		}
+		else if (ironClad->GetDefend() < damage)
+		{
+			int piercingDamage = damage - ironClad->GetDefend();
+			ironClad->SetDefend(0);
+			ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+			ironClad->SetCurHP(ironClad->GetCurHP() - piercingDamage);
+			ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
+			curHp->SetText(to_string(ironClad->GetCurHP()));
+		}
+	}
+	else
+	{
+		ironClad->SetCurHP(ironClad->GetCurHP() - damage);
+		ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
+		curHp->SetText(to_string(ironClad->GetCurHP()));
+	}
 }

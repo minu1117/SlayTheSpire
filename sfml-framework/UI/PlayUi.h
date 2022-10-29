@@ -13,12 +13,7 @@ enum class Stage
 	Question,
 	Shop,
 	Reword,
-};
-
-enum class Skill
-{
-	Normal,
-	Smite,
+	Boss,
 };
 
 class Monster;
@@ -229,5 +224,8 @@ public:
 	static SpriteObj* GetMainMenuButton() { return mainMenuButton; };
 
 	void ResetPlayUi();
+
+	void PlayerAttackDamage(int damage);
+	void MonsterAttackDamage(int damage);
 };
 

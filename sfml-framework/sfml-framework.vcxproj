@@ -146,6 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GameObject\BossMonster.cpp" />
     <ClCompile Include="GameObject\CardManager.cpp" />
     <ClCompile Include="Framework\Button.cpp" />
     <ClCompile Include="DataTable\DataTable.cpp" />
@@ -174,6 +175,7 @@
   <ItemGroup>
     <ClInclude Include="3rd\rapidcsv.h" />
     <ClInclude Include="3rd\Singleton.h" />
+    <ClInclude Include="GameObject\BossMonster.h" />
     <ClInclude Include="GameObject\CardManager.h" />
     <ClInclude Include="Framework\Button.h" />
     <ClInclude Include="DataTable\DataTable.h" />

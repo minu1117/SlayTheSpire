@@ -6,6 +6,13 @@ enum class PlayerType
 	IronClad,
 };
 
+enum class Skill
+{
+	Normal,
+	Smite,
+	clubbing,
+};
+
 class Player : public SpriteObj
 {
 protected:
