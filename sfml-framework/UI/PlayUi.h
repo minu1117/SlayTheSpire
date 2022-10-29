@@ -15,6 +15,12 @@ enum class Stage
 	Reword,
 };
 
+enum class Skill
+{
+	Normal,
+	Smite,
+};
+
 class Monster;
 class PlayUi : public UiMgr
 {
@@ -35,6 +41,9 @@ protected:
 	SpriteObj* attackButton;
 	SpriteObj* defendButton;
 	SpriteObj* actionWindow;
+
+	SpriteObj* normalAttackButton;
+	SpriteObj* attackSkillButton1;
 
 	SpriteObj* ternPassButton;
 	SpriteObj* ternPassButtonHover;
@@ -144,6 +153,9 @@ protected:
 	int getHp;
 	bool mapChoice = false;
 
+	bool isAttackSkill = false;
+	int skillCount = 0;
+
 public:
 	PlayUi(Scene* scene);
 	~PlayUi();
@@ -161,7 +173,7 @@ public:
 	void SetClearUi(bool set);
 
 	void MonsterAttack();
-	void PlayerAttack(float dt);
+	void PlayerAttack(float dt, Skill skill);
 
 	void MonsterSet(vector<Monster*> monster, bool set);
 
@@ -199,7 +211,10 @@ public:
 
 	void SetRewordMapUi(bool set);
 
-	void SerRewordUi(bool set);
+	void SetRewordUi(bool set);
+
+	void SetAttackSkillUi(bool set);
+	void SetDefenseSkillUi(bool set);
 
 	static Player* ironClad;
 	static Player* GetPlayer(PlayerType type);

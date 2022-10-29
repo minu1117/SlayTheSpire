@@ -49,6 +49,8 @@ void PlayUi::Init()
 	uiObjList.push_back(defendCount);
 	uiObjList.push_back(ternPassButton);
 	uiObjList.push_back(ternPassButtonHover);
+	uiObjList.push_back(normalAttackButton);
+	uiObjList.push_back(attackSkillButton1);
 
 	// monster
 	uiObjList.push_back(monster[0]);
@@ -137,13 +139,6 @@ void PlayUi::Update(float dt)
 	else
 		SetDieUi(true);
 
-	//if (ironClad->GetIsWeaken() > 0)
-	//{
-	//	ironClad->SetNotWeakenDamage(ironClad->GetDamage());
-	//	ironClad->SetWeakenDamage(ironClad->GetDamage() / 2);
-	//	ironClad->SetDamage(ironClad->GetWeakenDamage());
-	//}
-
 
 	if (stage == Stage::Start)
 	{
@@ -192,11 +187,38 @@ void PlayUi::Update(float dt)
 	if (stage == Stage::Monster)
 	{
 		SetMonsterStage(dt);
+		if (isMonsterTern == true)
+			SetActionUi(false);
+
+		if (Button::ButtonOnRect(*cursor, *attackButton) && isPlayerTern == true)
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				if (isAttackSkill == false)
+					isAttackSkill = true;
+				else
+					isAttackSkill = false;
+			}
+		}
+		if (Button::ButtonOnRect(*cursor, *defendButton) && isPlayerTern == true)
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				isAttackSkill = false;
+			}
+		}
+
+		if (isAttackSkill == true)
+			SetAttackSkillUi(true);
+		else
+			SetAttackSkillUi(false);
 	}
 	else
 	{
+		SetActionUi(false);
 		SetClearUi(false);
 		ternPassButtonHover->SetActive(false);
+		isAttackSkill = false;
 	}
 
 	if (stage == Stage::Map)
@@ -221,7 +243,7 @@ void PlayUi::Update(float dt)
 	else
 	{
 		SetRewordMapUi(false);
-		SerRewordUi(false);
+		SetRewordUi(false);
 		chest->SetTexture(*RESOURCE_MGR->GetTexture("graphics/largeChest.png"));
 	}
 
@@ -245,6 +267,9 @@ void PlayUi::Update(float dt)
 
 	// GiveUp Ui Control
 	GiveUpUiControl();
+
+	if (skillCount == 1)
+		getSkill->SetActive(false);
 
 	UiMgr::Update(dt);
 }
@@ -324,32 +349,61 @@ void PlayUi::MonsterAttack()
 	}
 }
 
-void PlayUi::PlayerAttack(float dt)
+void PlayUi::PlayerAttack(float dt, Skill skill)
 {
 	ironClad->SetIsAttack(true);
 	ironClad->Attack(dt);
 
-	if (monster[0]->GetDefend() > 0)
+	if (skill == Skill::Normal)
 	{
-		if (monster[0]->GetDefend() >= ironClad->GetDamage())
+		if (monster[0]->GetDefend() > 0)
 		{
-			int defend = monster[0]->GetDefend();
-			monster[0]->SetDefend(defend -= ironClad->GetDamage());
-			monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+			if (monster[0]->GetDefend() >= ironClad->GetDamage())
+			{
+				int defend = monster[0]->GetDefend();
+				monster[0]->SetDefend(defend -= ironClad->GetDamage());
+				monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+			}
+			else if (monster[0]->GetDefend() < ironClad->GetDamage())
+			{
+				int piercingDamage = ironClad->GetDamage() - monster[0]->GetDefend();
+				monster[0]->SetDefend(0);
+				monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+				monster[0]->SetCurHp(monster[0]->GetCurHp() - piercingDamage);
+				monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
+			}
 		}
-		else if (monster[0]->GetDefend() < ironClad->GetDamage())
+		else
 		{
-			int piercingDamage = ironClad->GetDamage() - monster[0]->GetDefend();
-			monster[0]->SetDefend(0);
-			monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
-			monster[0]->SetCurHp(monster[0]->GetCurHp() - piercingDamage);
+			monster[0]->SetCurHp(monster[0]->GetCurHp() - ironClad->GetDamage());
 			monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
 		}
 	}
-	else
+	else if (skill == Skill::Smite)
 	{
-		monster[0]->SetCurHp(monster[0]->GetCurHp() - ironClad->GetDamage());
-		monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
+		if (monster[0]->GetDefend() > 0)
+		{
+			if (monster[0]->GetDefend() >= ironClad->GetDamage() * 4)
+			{
+				int defend = monster[0]->GetDefend();
+				monster[0]->SetDefend(defend -= ironClad->GetDamage() * 4);
+				monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+			}
+			else if (monster[0]->GetDefend() < ironClad->GetDamage() * 4)
+			{
+				int piercingDamage = ironClad->GetDamage() * 4 - monster[0]->GetDefend();
+				monster[0]->SetDefend(0);
+				monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+				monster[0]->SetCurHp(monster[0]->GetCurHp() - piercingDamage);
+				monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
+				monster[0]->SetIsWeaken(monster[0]->GetIsWeaken() + 2);
+			}
+		}
+		else
+		{
+			monster[0]->SetCurHp(monster[0]->GetCurHp() - ironClad->GetDamage() * 4);
+			monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
+		}
 	}
 }
 
@@ -426,19 +480,42 @@ void PlayUi::PlayerTern(float dt)
 	}
 
 
-	if (Button::ButtonOnRect(*cursor, *attackButton) && ironClad->GetAttackCount() > 0 && energy > 0 && monsterCount > 0 && dieOrGiveup->GetActive() == false)
+	if (Button::ButtonOnRect(*cursor, *normalAttackButton) &&
+		ironClad->GetAttackCount() > 0 &&
+		energy > 0 && monsterCount > 0 && 
+		dieOrGiveup->GetActive() == false && 
+		normalAttackButton->GetActive() == true)
 	{
 		if (InputMgr::GetMouseButtonUp(Mouse::Left))
 		{
 			int attCount = ironClad->GetAttackCount();
 
-			PlayerAttack(dt);
+			PlayerAttack(dt, Skill::Normal);
 			ironClad->SetCurEnergy(energy -= 1);
 			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 
 			ironClad->SetAttackCount(attCount -= 1);
 		}
 	}
+	if (Button::ButtonOnRect(*cursor, *attackSkillButton1) &&
+		ironClad->GetAttackCount() >= 2 && 
+		energy >= 2 && 
+		monsterCount > 0 && 
+		dieOrGiveup->GetActive() == false &&
+		attackSkillButton1->GetActive() == true)
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Left))
+		{
+			int attCount = ironClad->GetAttackCount();
+
+			PlayerAttack(dt, Skill::Smite);
+			ironClad->SetCurEnergy(energy -= 2);
+			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+
+			ironClad->SetAttackCount(attCount -= 2);
+		}
+	}
+
 
 	if (Button::ButtonOnRect(*cursor, *defendButton) && ironClad->GetDefendCount() > 0 && energy > 0 && monsterCount > 0 && dieOrGiveup->GetActive() == false)
 	{
@@ -767,6 +844,9 @@ void PlayUi::UiCreate()
 			ternPassButtonHover = new SpriteObj();
 			attackButton = new SpriteObj();
 			defendButton = new SpriteObj();
+			normalAttackButton = new SpriteObj();
+			attackSkillButton1 = new SpriteObj();
+
 			actionWindow = new SpriteObj();
 			attackCount = new TextObj();
 			defendCount = new TextObj();
@@ -799,16 +879,21 @@ void PlayUi::UiCreate()
 			ironCladDamage->SetAll(font, "A : " + to_string((int)ironClad->GetDamage()), 30, Color::White,
 				{ setPlayerUiPos.x, setPlayerUiPos.y + 80 });
 
-
 			// Action Ui
 			{
 				actionWindow->SetAll(*RESOURCE_MGR->GetTexture("graphics/actionWindow.png"), { 0, 0 }, Origins::MC);
 				actionWindow->SetPos({ windowSize.x / 2, windowSize.y - (actionWindow->GetSize().y / 2) });
 
-				attackButton->SetAll(*RESOURCE_MGR->GetTexture("graphics/attackButton.png"),
-					{ 0, 0 }, Origins::MC);
+				attackButton->SetAll(*RESOURCE_MGR->GetTexture("graphics/attackButton.png"), { 0, 0 }, Origins::MC);
 				attackButton->SetPos({ actionWindow->GetPos().x - attackButton->GetSize().x,
 					actionWindow->GetPos().y });
+
+				normalAttackButton->SetAll(*RESOURCE_MGR->GetTexture("graphics/normalAttackButton.png"), {0, 0}, Origins::MC);
+				normalAttackButton->SetPos({ attackButton->GetPos().x, attackButton->GetPos().y - attackButton->GetSize().y});
+
+				attackSkillButton1->SetAll(*RESOURCE_MGR->GetTexture("graphics/smiteAttakButton.png"), { 0, 0 }, Origins::MC);
+				attackSkillButton1->SetPos({ -200, -200 });
+
 
 				defendButton->SetAll(*RESOURCE_MGR->GetTexture("graphics/defenseButton.png"),
 					{ 0, 0 }, Origins::MC);
@@ -1075,6 +1160,7 @@ void PlayUi::SetActionUi(bool set)
 	attackCount->SetActive(set);
 	defendCount->SetActive(set);
 	ternPassButton->SetActive(set);
+	SetAttackSkillUi(set);
 }
 
 void PlayUi::HpControl()
@@ -1151,6 +1237,7 @@ void PlayUi::SetMonsterStage(float dt)
 		if (InputMgr::GetMouseButtonUp(Mouse::Left))
 		{
 			SetMonsterTern();
+			isAttackSkill = false;
 			SOUND_MGR->Play("sounds/ternEnd.ogg", false);
 		}
 	}
@@ -1345,19 +1432,19 @@ void PlayUi::ShopStage()
 
 	if (Button::ButtonOnRect(*cursor, *damageUp))
 	{
-		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 30)
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 20 && damageUp->GetActive() == true)
 		{
 			ironClad->AddDamage(1);
 			ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage()));
 
-			ironClad->SetGold(ironClad->GetCurGold() - 30);
+			ironClad->SetGold(ironClad->GetCurGold() - 20);
 			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
 			// 돈 사운드
 		}
 	}
 	if (Button::ButtonOnRect(*cursor, *energyUp))
 	{
-		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 50)
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 30 && energyUp->GetActive() == true)
 		{
 			int e = ironClad->GetCurEnergy();
 			int maxe = ironClad->GetMaxEnergy();
@@ -1367,25 +1454,25 @@ void PlayUi::ShopStage()
 			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 			ironCladMaxEnergy->SetText(to_string(ironClad->GetMaxEnergy()));
 
-			ironClad->SetGold(ironClad->GetCurGold() - 50);
+			ironClad->SetGold(ironClad->GetCurGold() - 30);
 			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
 			// 돈 사운드
 		}
 	}
 	if (Button::ButtonOnRect(*cursor, *defenseUp))
 	{
-		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 30)
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 20 && defenseUp->GetActive() == true)
 		{
 			ironClad->SetAddDefend(ironClad->GetAddDefend() + 1);
 
-			ironClad->SetGold(ironClad->GetCurGold() - 30);
+			ironClad->SetGold(ironClad->GetCurGold() - 20);
 			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
 			// 돈 사운드
 		}
 	}
 	if (Button::ButtonOnRect(*cursor, *hpUp))
 	{
-		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 20)
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 10 && hpUp->GetActive() == true)
 		{
 			int hp = ironClad->GetCurHP();
 			int maxhp = ironClad->GetMaxHP();
@@ -1397,7 +1484,7 @@ void PlayUi::ShopStage()
 			curHp->SetText(to_string(ironClad->GetCurHP()));
 			maxHp->SetText(to_string(ironClad->GetMaxHP()));
 
-			ironClad->SetGold(ironClad->GetCurGold() - 20);
+			ironClad->SetGold(ironClad->GetCurGold() - 10);
 			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
 			// 돈 사운드
 		}
@@ -1405,13 +1492,19 @@ void PlayUi::ShopStage()
 
 	if (Button::ButtonOnRect(*cursor, *getSkill))
 	{
-		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 100)
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 70 && getSkill->GetActive() == true)
 		{
-			// 미구현
+			normalAttackButton->SetPos({ attackButton->GetPos().x - normalAttackButton->GetSize().x / 2,
+					attackButton->GetPos().y - attackButton->GetSize().y });
 
-			ironClad->SetGold(ironClad->GetCurGold() - 100);
+			attackSkillButton1->SetPos({ normalAttackButton->GetPos().x + attackSkillButton1->GetSize().x,
+				normalAttackButton->GetPos().y });
+
+			ironClad->SetGold(ironClad->GetCurGold() - 70);
 			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
 			// 돈 사운드
+
+			skillCount++;
 		}
 	}
 }
@@ -1426,7 +1519,7 @@ void PlayUi::RewordStage()
 		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 		{
 			chest->SetTexture(*RESOURCE_MGR->GetTexture("graphics/largeChestOpened.png"));
-			SerRewordUi(true);
+			SetRewordUi(true);
 			rewordUi = true;
 		}
 	}
@@ -1727,7 +1820,7 @@ void PlayUi::SetRewordMapUi(bool set)
 	chest->SetActive(set);
 }
 
-void PlayUi::SerRewordUi(bool set)
+void PlayUi::SetRewordUi(bool set)
 {
 	addGold->SetActive(set);
 	addDamage->SetActive(set);
@@ -1761,4 +1854,10 @@ void PlayUi::ResetPlayUi()
 	choiceOrder = 0;
 	stage = Stage::Start;
 	SOUND_MGR->StopAll();
+}
+
+void PlayUi::SetAttackSkillUi(bool set)
+{
+	normalAttackButton->SetActive(set);
+	attackSkillButton1->SetActive(set);
 }

@@ -6,13 +6,6 @@ enum class PlayerType
 	IronClad,
 };
 
-enum class AttackSkill
-{
-	Normal,
-	Smite,
-	BloodSucking,
-};
-
 class Player : public SpriteObj
 {
 protected:
