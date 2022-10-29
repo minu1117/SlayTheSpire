@@ -1,8 +1,9 @@
 id,"type(0: Texture, 1: Font, 2: Sound)"
 fonts/Mabinogi_Classic_TTF.ttf,1
-graphics/AttactCard.png,0
-graphics/DefenseCard.png,0
-graphics/UtilCard.png,0
+graphics/damageSale.png,0
+graphics/defenseSale.png,0
+graphics/energytSale.png,0
+graphics/hpSale.png,0
 graphics/testbackground.png,0
 graphics/testbackground2.png,0
 graphics/StartButton.png,0
@@ -67,3 +68,4 @@ graphics/largeChestOpened.png,0
 graphics/rewardScreen.png,0
 graphics/smiteAttakButton.png,0
 graphics/normalAttackButton.png,0
+graphics/clubbingSkillButton.png,0

@@ -39,6 +39,7 @@ protected:
 
 	SpriteObj* normalAttackButton;
 	SpriteObj* attackSkillButton1;
+	SpriteObj* attackSkillButton2;
 
 	SpriteObj* ternPassButton;
 	SpriteObj* ternPassButtonHover;
@@ -129,7 +130,8 @@ protected:
 	SpriteObj* defenseUp;
 	SpriteObj* energyUp;
 	SpriteObj* hpUp;
-	SpriteObj* getSkill;
+	SpriteObj* getSmite;
+	SpriteObj* getClubbing;
 
 	// reword
 	SpriteObj* chest;
@@ -149,7 +151,9 @@ protected:
 	bool mapChoice = false;
 
 	bool isAttackSkill = false;
-	int skillCount = 0;
+	bool smiteOn = false;
+	bool clubbingOn = false;
+
 
 public:
 	PlayUi(Scene* scene);

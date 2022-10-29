@@ -31,7 +31,8 @@ void PlayUi::Init()
 	uiObjList.push_back(defenseUp);
 	uiObjList.push_back(energyUp);
 	uiObjList.push_back(hpUp);
-	uiObjList.push_back(getSkill);
+	uiObjList.push_back(getSmite);
+	uiObjList.push_back(getClubbing);
 
 	uiObjList.push_back(rewordImage);
 	uiObjList.push_back(rewordText);
@@ -51,6 +52,7 @@ void PlayUi::Init()
 	uiObjList.push_back(ternPassButtonHover);
 	uiObjList.push_back(normalAttackButton);
 	uiObjList.push_back(attackSkillButton1);
+	uiObjList.push_back(attackSkillButton2);
 
 	// monster
 	uiObjList.push_back(monster[0]);
@@ -139,6 +141,9 @@ void PlayUi::Update(float dt)
 	else
 		SetDieUi(true);
 
+
+	if (InputMgr::GetKeyDown(Keyboard::Key::T))
+		ironClad->AddGold(50000);
 
 	if (stage == Stage::Start)
 	{
@@ -268,8 +273,10 @@ void PlayUi::Update(float dt)
 	// GiveUp Ui Control
 	GiveUpUiControl();
 
-	if (skillCount == 1)
-		getSkill->SetActive(false);
+	if (smiteOn == true)
+		getSmite->SetActive(false);
+	if (clubbingOn == true)
+		getClubbing->SetActive(false);
 
 	UiMgr::Update(dt);
 }
@@ -457,7 +464,7 @@ void PlayUi::PlayerTern(float dt)
 		energy >= 2 && 
 		monsterCount > 0 && 
 		dieOrGiveup->GetActive() == false &&
-		attackSkillButton1->GetActive() == true)
+		smiteOn == true)
 	{
 		if (InputMgr::GetMouseButtonUp(Mouse::Left))
 		{
@@ -468,6 +475,24 @@ void PlayUi::PlayerTern(float dt)
 			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 
 			ironClad->SetAttackCount(attCount -= 2);
+		}
+	}
+	if (Button::ButtonOnRect(*cursor, *attackSkillButton2) &&
+		ironClad->GetAttackCount() >= 3 &&
+		energy >= 3 &&
+		monsterCount > 0 &&
+		dieOrGiveup->GetActive() == false &&
+		clubbingOn == true)
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Left))
+		{
+			int attCount = ironClad->GetAttackCount();
+
+			PlayerAttack(dt, Skill::clubbing);
+			ironClad->SetCurEnergy(energy -= 3);
+			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+
+			ironClad->SetAttackCount(attCount -= 3);
 		}
 	}
 
@@ -748,8 +773,6 @@ void PlayUi::UiCreate()
 	Font& font = *RESOURCE_MGR->GetFont("fonts/Mabinogi_Classic_TTF.ttf");
 	auto testBackground = RESOURCE_MGR->GetTexture("graphics/testbackground.png");
 	auto tempBackgroundImage = RESOURCE_MGR->GetTexture("graphics/testbackground2.png");
-	auto testButton1 = RESOURCE_MGR->GetTexture("graphics/UtilCard.png");
-	auto testButton2 = RESOURCE_MGR->GetTexture("graphics/DefenseCard.png");
 	auto testBorderImage = RESOURCE_MGR->GetTexture("graphics/testborder.png");
 	auto testBackButton = RESOURCE_MGR->GetTexture("graphics/BackButton.png");
 	auto testOptionButton = RESOURCE_MGR->GetTexture("graphics/option.png");
@@ -837,6 +860,7 @@ void PlayUi::UiCreate()
 			defendButton = new SpriteObj();
 			normalAttackButton = new SpriteObj();
 			attackSkillButton1 = new SpriteObj();
+			attackSkillButton2 = new SpriteObj();
 
 			actionWindow = new SpriteObj();
 			attackCount = new TextObj();
@@ -884,6 +908,9 @@ void PlayUi::UiCreate()
 
 				attackSkillButton1->SetAll(*RESOURCE_MGR->GetTexture("graphics/smiteAttakButton.png"), { 0, 0 }, Origins::MC);
 				attackSkillButton1->SetPos({ -200, -200 });
+
+				attackSkillButton2->SetAll(*RESOURCE_MGR->GetTexture("graphics/clubbingSkillButton.png"), { 0, 0 }, Origins::MC);
+				attackSkillButton2->SetPos({ -200, -200 });
 
 
 				defendButton->SetAll(*RESOURCE_MGR->GetTexture("graphics/defenseButton.png"),
@@ -1112,13 +1139,15 @@ void PlayUi::UiCreate()
 		defenseUp = new SpriteObj();
 		energyUp = new SpriteObj();
 		hpUp = new SpriteObj();
-		getSkill = new SpriteObj();
+		getSmite = new SpriteObj();
+		getClubbing = new SpriteObj();
 
-		damageUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/AttactCard.png"), {0, 0}, Origins::MC);
-		defenseUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/DefenseCard.png"), {0, 0}, Origins::MC);
-		energyUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/UtilCard.png"), {0, 0}, Origins::MC);
-		hpUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/UtilCard.png"), {0, 0}, Origins::MC);
-		getSkill->SetAll(*RESOURCE_MGR->GetTexture("graphics/ironcladSelect.png"), {0, 0}, Origins::MC);
+		damageUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/damageSale.png"), {0, 0}, Origins::MC);
+		defenseUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/defenseSale.png"), {0, 0}, Origins::MC);
+		energyUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/energytSale.png"), {0, 0}, Origins::MC);
+		hpUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/hpSale.png"), {0, 0}, Origins::MC);
+		getSmite->SetAll(*RESOURCE_MGR->GetTexture("graphics/smiteAttakButton.png"), {0, 0}, Origins::MC);
+		getClubbing->SetAll(*RESOURCE_MGR->GetTexture("graphics/clubbingSkillButton.png"), {0, 0}, Origins::MC);
 	}
 
 	// reword
@@ -1416,10 +1445,13 @@ void PlayUi::ShopStage()
 	continueButton->SetActive(true);
 
 	damageUp->SetPos({ windowSize.x / 5, windowSize.y / 3 });
-	defenseUp->SetPos({ windowSize.x / 4, windowSize.y / 3 });
-	energyUp->SetPos({ windowSize.x / 2, windowSize.y / 3 });
-	hpUp->SetPos({ windowSize.x / 1.3f, windowSize.y / 3 });
-	getSkill->SetPos({ windowSize.x / 2, windowSize.y / 1.5f });
+	defenseUp->SetPos({ damageUp->GetPos().x + defenseUp->GetSize().x * 4, windowSize.y / 3});
+	energyUp->SetPos({ defenseUp->GetPos().x + energyUp->GetSize().x * 4, windowSize.y / 3 });
+	hpUp->SetPos({ energyUp->GetPos().x + hpUp->GetSize().x * 4, windowSize.y / 3 });
+
+
+	getSmite->SetPos({ windowSize.x / 2 - getSmite->GetSize().x * 1.5f, windowSize.y / 1.5f});
+	getClubbing->SetPos({ windowSize.x / 2 + getClubbing->GetSize().x * 1.5f, windowSize.y / 1.5f });
 
 	if (Button::ButtonOnRect(*cursor, *damageUp))
 	{
@@ -1481,21 +1513,57 @@ void PlayUi::ShopStage()
 		}
 	}
 
-	if (Button::ButtonOnRect(*cursor, *getSkill))
+	if (Button::ButtonOnRect(*cursor, *getSmite))
 	{
-		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 70 && getSkill->GetActive() == true)
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 50 && smiteOn == false)
 		{
-			normalAttackButton->SetPos({ attackButton->GetPos().x - normalAttackButton->GetSize().x / 2,
+			if (clubbingOn == false)
+			{
+				normalAttackButton->SetPos({ attackButton->GetPos().x - normalAttackButton->GetSize().x / 2,
 					attackButton->GetPos().y - attackButton->GetSize().y });
-
-			attackSkillButton1->SetPos({ normalAttackButton->GetPos().x + attackSkillButton1->GetSize().x,
-				normalAttackButton->GetPos().y });
-
-			ironClad->SetGold(ironClad->GetCurGold() - 70);
+				attackSkillButton1->SetPos({ normalAttackButton->GetPos().x + attackSkillButton1->GetSize().x,
+					normalAttackButton->GetPos().y });
+			}
+			else if (clubbingOn == true)
+			{
+				normalAttackButton->SetPos({ attackButton->GetPos().x - normalAttackButton->GetSize().x / 2 - normalAttackButton->GetSize().x / 2,
+					attackButton->GetPos().y - attackButton->GetSize().y });
+				attackSkillButton1->SetPos({ normalAttackButton->GetPos().x + attackSkillButton1->GetSize().x,
+					normalAttackButton->GetPos().y });
+				attackSkillButton2->SetPos({ attackSkillButton1->GetPos().x + attackSkillButton2->GetSize().x,
+					normalAttackButton->GetPos().y });
+			}
+			smiteOn = true;
+			ironClad->SetGold(ironClad->GetCurGold() - 50);
 			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
 			// 돈 사운드
 
-			skillCount++;
+			
+		}
+	}
+	if (Button::ButtonOnRect(*cursor, *getClubbing))
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 50 && clubbingOn == false)
+		{
+			if (smiteOn == false)
+			{
+				normalAttackButton->SetPos({ attackButton->GetPos().x - normalAttackButton->GetSize().x / 2,
+					attackButton->GetPos().y - attackButton->GetSize().y });
+				attackSkillButton2->SetPos({ normalAttackButton->GetPos().x + attackSkillButton2->GetSize().x,
+					normalAttackButton->GetPos().y });
+			}
+			else if (smiteOn == true)
+			{
+				normalAttackButton->SetPos({ attackButton->GetPos().x - normalAttackButton->GetSize().x / 2 - normalAttackButton->GetSize().x / 2,
+					attackButton->GetPos().y - attackButton->GetSize().y });
+				attackSkillButton1->SetPos({ normalAttackButton->GetPos().x + attackSkillButton1->GetSize().x,
+					normalAttackButton->GetPos().y });
+				attackSkillButton2->SetPos({ attackSkillButton1->GetPos().x + attackSkillButton2->GetSize().x,
+					normalAttackButton->GetPos().y });
+			}
+			clubbingOn = true;
+			ironClad->SetGold(ironClad->GetCurGold() - 50);
+			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
 		}
 	}
 }
@@ -1803,7 +1871,8 @@ void PlayUi::SetShopMapUi(bool set)
 	defenseUp->SetActive(set);
 	energyUp->SetActive(set);
 	hpUp->SetActive(set);
-	getSkill->SetActive(set);
+	getSmite->SetActive(set);
+	getClubbing->SetActive(set);
 }
 
 void PlayUi::SetRewordMapUi(bool set)
@@ -1843,6 +1912,8 @@ void PlayUi::ResetPlayUi()
 	mapUi = false;
 	giveupUi = false;
 	choiceOrder = 0;
+	smiteOn = false;
+	clubbingOn = false;
 	stage = Stage::Start;
 	SOUND_MGR->StopAll();
 }
@@ -1851,6 +1922,7 @@ void PlayUi::SetAttackSkillUi(bool set)
 {
 	normalAttackButton->SetActive(set);
 	attackSkillButton1->SetActive(set);
+	attackSkillButton2->SetActive(set);
 }
 
 void PlayUi::PlayerAttackDamage(int damage)
