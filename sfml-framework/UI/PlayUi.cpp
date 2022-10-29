@@ -1412,7 +1412,7 @@ void PlayUi::HpControl()
 {
 	float playerCurHpBarSet = (ironClad->GetMaxHP() - ironClad->GetCurHP()) * (80.f / ironClad->GetMaxHP() * 0.01f);
 	float monsterCurHpBarSet = (monster[0]->GetMaxHp() - monster[0]->GetCurHp()) * (80.f / monster[0]->GetMaxHp() * 0.01f);
-	float bossCurHpBarSet = (boss->GetMaxHp() - boss->GetCurHp()) * (80.f / boss->GetMaxHp() * 0.01f);
+	float bossCurHpBarSet = (boss->GetMaxHp() - boss->GetCurHp()) * (100.f / boss->GetMaxHp() * 0.01f);
 
 	playerCurHpBar->SetScale(0.8f - playerCurHpBarSet, 1);
 	playerMaxHpBar->SetScale(0.8f, 1);
@@ -1435,8 +1435,12 @@ void PlayUi::HpControl()
 	}
 	if (stage == Stage::Boss) 
 	{
-		monsterCurHpBar->SetScale(0.8f - bossCurHpBarSet, 1);
-		monsterMaxHpBar->SetScale(0.8f, 1);
+		monsterCurHpBar->SetScale(1 - bossCurHpBarSet, 1);
+		monsterMaxHpBar->SetScale(1, 1);
+
+		monsterCurHpBar->SetPos({ boss->GetPos().x + monsterCurHpBar->GetSize().x / 2, boss->GetPos().y + boss->GetSize().y / 2 - 45.f});
+		monsterMaxHpBar->SetPos(monsterCurHpBar->GetPos());
+
 		monsterCurHp->SetText(to_string(boss->GetCurHp()));
 		monsterMaxHp->SetText(to_string(boss->GetMaxHp()));
 
@@ -2278,7 +2282,7 @@ void PlayUi::PlayerAttackDamage(int damage)
 			{
 				int defend = boss->GetDefend();
 				boss->SetDefend(defend -= damage);
-				monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+				monsterDefend->SetText("D : " + to_string(boss->GetDefend()));
 			}
 			else if (boss->GetDefend() < damage)
 			{
@@ -2286,7 +2290,7 @@ void PlayUi::PlayerAttackDamage(int damage)
 				boss->SetDefend(0);
 				monsterDefend->SetText("D : " + to_string(boss->GetDefend()));
 				boss->SetCurHp(boss->GetCurHp() - piercingDamage);
-				monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
+				monsterCurHp->SetText(to_string(boss->GetCurHp()));
 			}
 		}
 		else
