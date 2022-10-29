@@ -163,6 +163,11 @@ protected:
 	int bossCount = 1;
 	float nukeDelay = 0.2f;
 
+	SpriteObj* bossPlasma1;
+	SpriteObj* bossPlasma2;
+	SpriteObj* bossPlasma3;
+	SpriteObj* bossShadow;
+
 public:
 	PlayUi(Scene* scene);
 	~PlayUi();

@@ -35,6 +35,7 @@ void PlayUi::Init()
 	uiObjList.push_back(getSmite);
 	uiObjList.push_back(getClubbing);
 
+
 	uiObjList.push_back(rewordImage);
 	uiObjList.push_back(rewordText);
 	uiObjList.push_back(chest);
@@ -57,6 +58,16 @@ void PlayUi::Init()
 
 	// monster
 	uiObjList.push_back(monster[0]);
+
+	// Boss
+	uiObjList.push_back(bossShadow);
+	uiObjList.push_back(bossPlasma3);
+	uiObjList.push_back(bossPlasma2);
+	uiObjList.push_back(bossPlasma1);
+	uiObjList.push_back(boss);
+
+
+	// Monster / Boss Ui
 	uiObjList.push_back(monsterMaxHpBar);
 	uiObjList.push_back(monsterCurHpBar);
 	uiObjList.push_back(monsterDefend);
@@ -64,9 +75,6 @@ void PlayUi::Init()
 	uiObjList.push_back(monsterMaxHp);
 	uiObjList.push_back(monsterPattern);
 	uiObjList.push_back(monsterDamage);
-
-	// Boss
-	uiObjList.push_back(boss);
 
 	// player
 	uiObjList.push_back(playerMaxHpBar);
@@ -276,6 +284,10 @@ void PlayUi::Update(float dt)
 
 	if (stage == Stage::Boss)
 	{
+		bossPlasma1->SetRotation(bossPlasma1->GetRotate() + dt * 30);
+		bossPlasma2->SetRotation(bossPlasma2->GetRotate() - dt * 40);
+		bossPlasma3->SetRotation(bossPlasma3->GetRotate() + dt * 50);
+
 		SetMonsterStage(dt);
 		if (isMonsterTern == true)
 			SetActionUi(false);
@@ -1392,8 +1404,18 @@ void PlayUi::UiCreate()
 	// Boss
 	{
 		boss = new BossMonster(150, 150, 0, 0);
-		boss->SetAll(*RESOURCE_MGR->GetTexture("graphics/hexaghost.png"), 
+		boss->SetAll(*RESOURCE_MGR->GetTexture("graphics/core.png"), 
 			{ monster[0]->GetPos().x, monster[0]->GetPos().y - 100 }, Origins::MC);
+
+		bossPlasma1 = new SpriteObj();
+		bossPlasma2 = new SpriteObj();
+		bossPlasma3 = new SpriteObj();
+		bossShadow = new SpriteObj();
+
+		bossPlasma1->SetAll(*RESOURCE_MGR->GetTexture("graphics/plasma1.png"), boss->GetPos(), Origins::MC);
+		bossPlasma2->SetAll(*RESOURCE_MGR->GetTexture("graphics/plasma2.png"), boss->GetPos(), Origins::MC);
+		bossPlasma3->SetAll(*RESOURCE_MGR->GetTexture("graphics/plasma3.png"), boss->GetPos(), Origins::MC);
+		bossShadow->SetAll(*RESOURCE_MGR->GetTexture("graphics/shadow.png"), boss->GetPos(), Origins::MC);
 	}
 }
 

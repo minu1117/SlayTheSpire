@@ -69,3 +69,7 @@ void SpriteObj::SetScale(float x, float y)
 	sprite.setScale(x, y);
 }
 
+void SpriteObj::SetRotation(float angle)
+{
+	sprite.setRotation(angle);
+}
