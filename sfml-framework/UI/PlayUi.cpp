@@ -4,6 +4,7 @@
 #include "UiDev1.h"
 #include "../GameObject/Monster.h"
 #include "../Framework/SoundMgr.h"
+#include "../GameObject/BossMonster.h"
 
 Player* PlayUi::ironClad;
 vector<Monster*> PlayUi::monster;
@@ -63,6 +64,9 @@ void PlayUi::Init()
 	uiObjList.push_back(monsterMaxHp);
 	uiObjList.push_back(monsterPattern);
 	uiObjList.push_back(monsterDamage);
+
+	// Boss
+	uiObjList.push_back(boss);
 
 	// player
 	uiObjList.push_back(playerMaxHpBar);
@@ -135,6 +139,13 @@ void PlayUi::Update(float dt)
 	// Player / Monster HP, HP Bar Control
 	HpControl();
 	EnterTheStage(dt);
+
+	if (stage == Stage::Monster)
+		monsterPattern->SetPos({ monster[0]->GetPos().x - 30, monster[0]->GetPos().y - monster[0]->GetSize().y / 2 - 10});
+	else if (stage == Stage::Boss)
+		monsterPattern->SetPos({ boss->GetPos().x, boss->GetPos().y - boss->GetSize().y / 2 });
+
+	monsterPattern->SetOrigin(Origins::MC);
 
 	if (ironClad->GetAlive() == true)
 		SetDieUi(false);
@@ -221,13 +232,7 @@ void PlayUi::Update(float dt)
 		else
 			SetAttackSkillUi(false);
 	}
-	else
-	{
-		SetActionUi(false);
-		SetClearUi(false);
-		ternPassButtonHover->SetActive(false);
-		isAttackSkill = false;
-	}
+
 
 	if (stage == Stage::Map)
 	{
@@ -237,10 +242,12 @@ void PlayUi::Update(float dt)
 		mapUi = true;
 	}
 
+
 	if (stage == Stage::Question)
 	{
 		QuestionStage();
 	}
+
 
 	if (stage == Stage::Reword)
 	{
@@ -255,6 +262,7 @@ void PlayUi::Update(float dt)
 		chest->SetTexture(*RESOURCE_MGR->GetTexture("graphics/largeChest.png"));
 	}
 
+
 	if (stage == Stage::Shop)
 	{
 		SetShopMapUi(true);
@@ -264,6 +272,66 @@ void PlayUi::Update(float dt)
 	}
 	else
 		SetShopMapUi(false);
+
+
+	if (stage == Stage::Boss)
+	{
+		SetMonsterStage(dt);
+		if (isMonsterTern == true)
+			SetActionUi(false);
+
+		if (Button::ButtonOnRect(*cursor, *attackButton) && isPlayerTern == true)
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				if (isAttackSkill == false)
+					isAttackSkill = true;
+				else
+					isAttackSkill = false;
+			}
+		}
+		if (Button::ButtonOnRect(*cursor, *defendButton) && isPlayerTern == true)
+		{
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				isAttackSkill = false;
+			}
+		}
+
+		if (isAttackSkill == true)
+			SetAttackSkillUi(true);
+		else
+			SetAttackSkillUi(false);
+	}
+	else
+	{
+		boss->SetActive(false);
+	}
+
+	if (stage == Stage::Monster || stage == Stage::Boss)
+	{
+		if (stage == Stage::Monster)
+		{
+			if (monsterCount > 0)
+				SetClearUi(false);
+			else
+				SetClearUi(true);
+		}
+		else if (stage == Stage::Boss)
+		{
+			if (bossCount > 0)
+				SetClearUi(false);
+			else
+				SetClearUi(true);
+		}
+	}
+	else
+	{
+		SetActionUi(false);
+		SetClearUi(false);
+		ternPassButtonHover->SetActive(false);
+		isAttackSkill = false;
+	}
 
 	// Option Ui Control
 	if (giveupUi == false)
@@ -331,12 +399,22 @@ void PlayUi::SetGiveUpUi(bool set)
 	confirmMessage->SetActive(set);
 }
 
-void PlayUi::MonsterAttack()
+void PlayUi::MonsterAttack(float dt)
 {
-	if (monster[0]->GetIsWeaken() == 0)
-		MonsterAttackDamage(monster[0]->GetDamage());
-	else if (monster[0]->GetIsWeaken() > 0)
-		MonsterAttackDamage(monster[0]->GetDamage() / 2);
+	if (stage == Stage::Monster)
+	{
+		if (monster[0]->GetIsWeaken() == 0)
+			MonsterAttackDamage(monster[0]->GetDamage());
+		else if (monster[0]->GetIsWeaken() > 0)
+			MonsterAttackDamage(monster[0]->GetDamage() / 2);
+	}
+	else if (stage == Stage::Boss)
+	{
+		if (boss->GetIsWeaken() == 0)
+			MonsterAttackDamage(boss->GetDamage());
+		else if (boss->GetIsWeaken() > 0)
+			MonsterAttackDamage(boss->GetDamage() / 2);
+	}
 }
 
 void PlayUi::PlayerAttack(float dt, Skill skill)
@@ -344,44 +422,131 @@ void PlayUi::PlayerAttack(float dt, Skill skill)
 	ironClad->SetIsAttack(true);
 	ironClad->Attack(dt);
 
-	if (skill == Skill::Normal)
+	if (stage == Stage::Monster)
 	{
-		if (ironClad->GetIsWeaken() > 0)
-			PlayerAttackDamage(ironClad->GetDamage() / 2);
-		else
-			PlayerAttackDamage(ironClad->GetDamage());
-	}
-	else if (skill == Skill::Smite)
-	{
-		if (ironClad->GetIsWeaken() > 0)
-			PlayerAttackDamage(ironClad->GetDamage() + 5 / 2);
-		else
-			PlayerAttackDamage(ironClad->GetDamage() + 5);
+		if (skill == Skill::Normal)
+		{
+			if (ironClad->GetIsWeaken() > 0)
+				PlayerAttackDamage(ironClad->GetDamage() / 2);
+			else
+				PlayerAttackDamage(ironClad->GetDamage());
+		}
+		else if (skill == Skill::Smite)
+		{
+			if (ironClad->GetIsWeaken() > 0)
+				PlayerAttackDamage(ironClad->GetDamage() + 5 / 2);
+			else
+				PlayerAttackDamage(ironClad->GetDamage() + 5);
 
-		monster[0]->SetIsWeaken(monster[0]->GetIsWeaken() + 2);
+			monster[0]->SetIsWeaken(monster[0]->GetIsWeaken() + 2);
 
-		if (randomMonsterPattern <= 1)
-			monsterDamage->SetText("A : " + to_string((int)monster[0]->GetDamage() / 2));
+			if (randomMonsterPattern <= 1)
+				monsterDamage->SetText("A : " + to_string((int)monster[0]->GetDamage() / 2));
+		}
+		else if (skill == Skill::clubbing)
+		{
+			if (ironClad->GetIsWeaken() > 0)
+				PlayerAttackDamage(ironClad->GetDamage() * 4 / 2);
+			else
+				PlayerAttackDamage(ironClad->GetDamage() * 4);
+		}
 	}
-	else if (skill == Skill::clubbing)
+	else if (stage == Stage::Boss)
 	{
-		if (ironClad->GetIsWeaken() > 0)
-			PlayerAttackDamage(ironClad->GetDamage() * 4 / 2);
-		else
-			PlayerAttackDamage(ironClad->GetDamage() * 4);
+		if (skill == Skill::Normal)
+		{
+			if (ironClad->GetIsWeaken() > 0)
+				PlayerAttackDamage(ironClad->GetDamage() / 2);
+			else
+				PlayerAttackDamage(ironClad->GetDamage());
+		}
+		else if (skill == Skill::Smite)
+		{
+			if (ironClad->GetIsWeaken() > 0)
+				PlayerAttackDamage(ironClad->GetDamage() + 5 / 2);
+			else
+				PlayerAttackDamage(ironClad->GetDamage() + 5);
+
+			boss->SetIsWeaken(boss->GetIsWeaken() + 2);
+
+			if (randomMonsterPattern <= 1)
+				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2));
+		}
+		else if (skill == Skill::clubbing)
+		{
+			if (ironClad->GetIsWeaken() > 0)
+				PlayerAttackDamage(ironClad->GetDamage() * 4 / 2);
+			else
+				PlayerAttackDamage(ironClad->GetDamage() * 4);
+		}
 	}
 }
 
 void PlayUi::MonsterSet(vector<Monster*> monster, bool set)
 {
-	if (set == true)
+	if (stage == Stage::Monster)
 	{
-		for (int i = 0; i < monster.size(); i++)
+		if (set == true)
 		{
-			if (monster[i]->GetCurHp() <= 0)
+			for (int i = 0; i < monster.size(); i++)
 			{
-				monster[i]->SetAlive(false);
-				monster[i]->SetActive(false);
+				if (monster[i]->GetCurHp() <= 0)
+				{
+					monster[i]->SetAlive(false);
+					monster[i]->SetActive(false);
+					monsterCurHp->SetActive(false);
+					monsterMaxHp->SetActive(false);
+					monsterDamage->SetActive(false);
+					monsterDefend->SetActive(false);
+					monsterPattern->SetActive(false);
+					monsterCurHpBar->SetActive(false);
+					monsterMaxHpBar->SetActive(false);
+				}
+				else
+				{
+					monster[i]->SetAlive(set);
+					monster[i]->SetActive(set);
+
+					// vector �� �����
+					monsterCurHp->SetActive(set);
+					monsterMaxHp->SetActive(set);
+					monsterDamage->SetActive(set);
+					monsterDefend->SetActive(set);
+					monsterPattern->SetActive(set);
+					monsterCurHpBar->SetActive(set);
+					monsterMaxHpBar->SetActive(set);
+				}
+			}
+
+		}
+		else
+		{
+			for (int i = 0; i < monster.size(); i++)
+			{
+				monster[i]->SetAlive(set);
+				monster[i]->SetActive(set);
+			}
+
+			monsterCurHp->SetActive(set);
+			monsterMaxHp->SetActive(set);
+			monsterDamage->SetActive(set);
+			monsterDefend->SetActive(set);
+			monsterPattern->SetActive(set);
+			monsterCurHpBar->SetActive(set);
+			monsterMaxHpBar->SetActive(set);
+		}
+	}
+	else if (stage == Stage::Boss)
+	{
+		monster[0]->SetActive(false);
+		monster[0]->SetAlive(false);
+
+		if (set == true)
+		{
+			if (boss->GetCurHp() <= 0)
+			{
+				boss->SetAlive(false);
+				boss->SetActive(false);
 				monsterCurHp->SetActive(false);
 				monsterMaxHp->SetActive(false);
 				monsterDamage->SetActive(false);
@@ -392,8 +557,8 @@ void PlayUi::MonsterSet(vector<Monster*> monster, bool set)
 			}
 			else
 			{
-				monster[i]->SetAlive(set);
-				monster[i]->SetActive(set);
+				boss->SetAlive(set);
+				boss->SetActive(set);
 
 				// vector �� �����
 				monsterCurHp->SetActive(set);
@@ -405,23 +570,22 @@ void PlayUi::MonsterSet(vector<Monster*> monster, bool set)
 				monsterMaxHpBar->SetActive(set);
 			}
 		}
-
-	}
-	else
-	{
-		for (int i = 0; i < monster.size(); i++)
+		else
 		{
-			monster[i]->SetAlive(set);
-			monster[i]->SetActive(set);
-		}
+			monster[0]->SetActive(false);
+			monster[0]->SetAlive(false);
 
-		monsterCurHp->SetActive(set);
-		monsterMaxHp->SetActive(set);
-		monsterDamage->SetActive(set);
-		monsterDefend->SetActive(set);
-		monsterPattern->SetActive(set);
-		monsterCurHpBar->SetActive(set);
-		monsterMaxHpBar->SetActive(set);
+			boss->SetAlive(set);
+			boss->SetActive(set);
+
+			monsterCurHp->SetActive(set);
+			monsterMaxHp->SetActive(set);
+			monsterDamage->SetActive(set);
+			monsterDefend->SetActive(set);
+			monsterPattern->SetActive(set);
+			monsterCurHpBar->SetActive(set);
+			monsterMaxHpBar->SetActive(set);
+		}
 	}
 }
 
@@ -429,8 +593,6 @@ void PlayUi::PlayerTern(float dt)
 {
 	// player tern
 	int maxEnergy = ironClad->GetMaxEnergy();
-	int energy = ironClad->GetCurEnergy();
-	int defend = ironClad->GetDefend();
 
 	if (playerActionCountSet == true)
 	{
@@ -444,140 +606,124 @@ void PlayUi::PlayerTern(float dt)
 		playerActionCountSet = false;
 	}
 
-
-	if (Button::ButtonOnRect(*cursor, *normalAttackButton) &&
-		ironClad->GetAttackCount() > 0 &&
-		energy > 0 && monsterCount > 0 && 
-		dieOrGiveup->GetActive() == false && 
-		normalAttackButton->GetActive() == true)
+	if (stage == Stage::Monster)
 	{
-		if (InputMgr::GetMouseButtonUp(Mouse::Left))
-		{
-			int attCount = ironClad->GetAttackCount();
-
-			PlayerAttack(dt, Skill::Normal);
-			ironClad->SetCurEnergy(energy -= 1);
-			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
-
-			ironClad->SetAttackCount(attCount -= 1);
-		}
+		AttackButtonControl(monsterCount, dt);
 	}
-	if (Button::ButtonOnRect(*cursor, *attackSkillButton1) &&
-		ironClad->GetAttackCount() >= 2 && 
-		energy >= 2 && 
-		monsterCount > 0 && 
-		dieOrGiveup->GetActive() == false &&
-		smiteOn == true)
+	else if (stage == Stage::Boss)
 	{
-		if (InputMgr::GetMouseButtonUp(Mouse::Left))
-		{
-			int attCount = ironClad->GetAttackCount();
-
-			PlayerAttack(dt, Skill::Smite);
-			ironClad->SetCurEnergy(energy -= 2);
-			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
-
-			ironClad->SetAttackCount(attCount -= 2);
-		}
-	}
-	if (Button::ButtonOnRect(*cursor, *attackSkillButton2) &&
-		ironClad->GetAttackCount() >= 3 &&
-		energy >= 3 &&
-		monsterCount > 0 &&
-		dieOrGiveup->GetActive() == false &&
-		clubbingOn == true)
-	{
-		if (InputMgr::GetMouseButtonUp(Mouse::Left))
-		{
-			int attCount = ironClad->GetAttackCount();
-
-			PlayerAttack(dt, Skill::clubbing);
-			ironClad->SetCurEnergy(energy -= 3);
-			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
-
-			ironClad->SetAttackCount(attCount -= 3);
-		}
-	}
-
-
-	if (Button::ButtonOnRect(*cursor, *defendButton) && ironClad->GetDefendCount() > 0 && energy > 0 && monsterCount > 0 && dieOrGiveup->GetActive() == false)
-	{
-		if (InputMgr::GetMouseButtonUp(Mouse::Left))
-		{
-			int defCount = ironClad->GetDefendCount();
-
-			if (ironClad->GetIsWeaken() > 0)
-			{
-				int D = ironClad->GetAddDefend();
-				ironClad->SetWeakenDefend(D / 2);
-
-				ironClad->SetDefend(defend += ironClad->GetWeakenDefend());
-				ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
-				ironClad->SetCurEnergy(energy -= 1);
-				ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
-
-				ironClad->SetDefendCount(defCount -= 1);
-			}
-			else
-			{
-				ironClad->SetDefend(defend += ironClad->GetAddDefend());
-				ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
-				ironClad->SetCurEnergy(energy -= 1);
-				ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
-
-				ironClad->SetDefendCount(defCount -= 1);
-			}
-		}
+		AttackButtonControl(bossCount, dt);
 	}
 }
 
 void PlayUi::SetNextMonsterAction()
 {
-	randomMonsterPattern = Utils::RandomRange(0, 4);
-	if (randomMonsterPattern <= 1)
+	if (stage == Stage::Monster)
 	{
-		int setDamage = 0;
-
-		switch (monster[0]->GetType())
+		randomMonsterPattern = Utils::RandomRange(0, 4);
+		if (randomMonsterPattern <= 1)
 		{
-		case MonsterType::Easy:
-			setDamage = Utils::RandomRange(4, 8);
-			monster[0]->SetDamage(setDamage);
-			break;
-		case MonsterType::Normal:
-			setDamage = Utils::RandomRange(8, 15);
-			monster[0]->SetDamage(setDamage);
-			break;
-		case MonsterType::Hard:
-			setDamage = Utils::RandomRange(6, 23);
-			monster[0]->SetDamage(setDamage);
-			break;
+			int setDamage = 0;
+
+			switch (monster[0]->GetType())
+			{
+			case MonsterType::Easy:
+				setDamage = Utils::RandomRange(4, 8);
+				monster[0]->SetDamage(setDamage);
+				break;
+			case MonsterType::Normal:
+				setDamage = Utils::RandomRange(8, 15);
+				monster[0]->SetDamage(setDamage);
+				break;
+			case MonsterType::Hard:
+				setDamage = Utils::RandomRange(6, 23);
+				monster[0]->SetDamage(setDamage);
+				break;
+			}
+
+			monsterPattern->SetText("ATTACK");
+
+			if (monster[0]->GetIsWeaken() == 0)
+				monsterDamage->SetText("A : " + to_string((int)monster[0]->GetDamage()));
+			else
+				monsterDamage->SetText("A : " + to_string((int)monster[0]->GetDamage() / 2));
+
+			monsterDamage->SetActive(true);
+		}
+		else if (randomMonsterPattern == 2)
+		{
+			monsterPattern->SetText("DEFENCE");
+			monsterDamage->SetText("");
+			monsterDamage->SetActive(false);
+		}
+		else if (randomMonsterPattern == 3)
+		{
+			monsterPattern->SetText("Status Ailment");
+			monsterDamage->SetText("");
+			monsterDamage->SetActive(false);
 		}
 
-		monsterPattern->SetText("ATTACK");
-
-		if (monster[0]->GetIsWeaken() == 0)
-			monsterDamage->SetText("A : " + to_string((int)monster[0]->GetDamage()));
-		else
-			monsterDamage->SetText("A : " + to_string((int)monster[0]->GetDamage() / 2));
-
-		monsterDamage->SetActive(true);
+		monsterRandomPatternSetting = false;
+		isMonsterTern = false;
 	}
-	else if (randomMonsterPattern == 2)
+	else if (stage == Stage::Boss)
 	{
-		monsterPattern->SetText("DEFENCE");
-		monsterDamage->SetText("");
-		monsterDamage->SetActive(false);
-	}
-	else if (randomMonsterPattern == 3)
-	{
-		monsterPattern->SetText("Status Ailment");
-		monsterDamage->SetText("");
-		monsterDamage->SetActive(false);
-	}
+		randomMonsterPattern = Utils::RandomRange(0, 9);
 
-	monsterRandomPatternSetting = false;
-	isMonsterTern = false;
+		if (randomMonsterPattern <= 2)
+		{
+			int setDamage = Utils::RandomRange(6, 12);
+			boss->SetDamage(setDamage);
+			monsterPattern->SetText("NORMAL ATTACK");
+
+			if (monster[0]->GetIsWeaken() == 0)
+				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage()));
+			else
+				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2));
+
+			monsterDamage->SetActive(true);
+		}
+		else if (randomMonsterPattern == 3 || randomMonsterPattern == 4)
+		{
+			monsterPattern->SetText("DEFENCE");
+			monsterDamage->SetText("");
+			monsterDamage->SetActive(false);
+		}
+		else if (randomMonsterPattern == 5 || randomMonsterPattern == 6)
+		{
+			monsterPattern->SetText("Status Ailment");
+			monsterDamage->SetText("");
+			monsterDamage->SetActive(false);
+		}
+		else if (randomMonsterPattern == 7)
+		{
+			int setDamage = Utils::RandomRange(20, 40);
+			boss->SetDamage(setDamage);
+			monsterPattern->SetText("SMITE");
+
+			if (monster[0]->GetIsWeaken() == 0)
+				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage()));
+			else
+				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2));
+
+			monsterDamage->SetActive(true);
+		}
+		else if (randomMonsterPattern == 8)
+		{
+			boss->SetDamage(6);
+			monsterPattern->SetText("NUKE");
+
+			if (monster[0]->GetIsWeaken() == 0)
+				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage()) + " X 6");
+			else
+				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2) + " X 6");
+
+			monsterDamage->SetActive(true);
+		}
+
+		monsterRandomPatternSetting = false;
+		isMonsterTern = false;
+	}
 }
 
 void PlayUi::MonsterAction(float dt)
@@ -591,7 +737,7 @@ void PlayUi::MonsterAction(float dt)
 	{
 		monster[0]->Pattern(randomMonsterPattern, dt);
 		if (monster[0]->GetPattern() == MonsterPattern::Attack)
-			MonsterAttack();
+			MonsterAttack(dt);
 
 		if (monster[0]->GetPattern() == MonsterPattern::Weaken)
 		{
@@ -603,28 +749,96 @@ void PlayUi::MonsterAction(float dt)
 	}
 	if (stage == Stage::Boss)
 	{
-		//monster[0]->Pattern(randomMonsterPattern, dt);
-		//if (monster[0]->GetPattern() == MonsterPattern::Attack)
-			//MonsterAttack();
+		boss->BossPattenSet(randomMonsterPattern, ironClad);
 
-		//monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+		if (boss->GetBossPattern() == BossPattern::NormalAttack ||
+			boss->GetBossPattern() == BossPattern::Smite)
+		{
+			MonsterAttack(dt);
+		}
+
+		if (boss->GetBossPattern() == BossPattern::Weaken)
+		{
+			ironClad->SetIsWeaken(ironClad->GetIsWeaken() + 1);
+			ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage() / 2));
+		}
+
+		if (boss->GetBossPattern() == BossPattern::Nuke)
+		{
+			nukeDelay -= dt;
+
+			if (boss->GetNukeCount() > 0 && nukeDelay <= 0.f)
+			{
+				MonsterAttack(dt);
+				boss->SetNukeCount(boss->GetNukeCount() - 1);
+				nukeDelay = 0.2f;
+			}
+		}
+
+		monsterDefend->SetText("D : " + to_string(boss->GetDefend()));
 	}
 
-	ironClad->SetCurEnergy(ironClad->GetMaxEnergy());
-	ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 
-	isPlayerTern = true;
-	monsterRandomPatternSetting = true;
-	playerActionCountSet = true;
-	ternPassButton->SetActive(true);
+	if (stage == Stage::Boss)
+	{
+		if (boss->GetBossPattern() == BossPattern::Nuke)
+		{
+			if (boss->GetNukeCount() == 0)
+			{
+				ironClad->SetCurEnergy(ironClad->GetMaxEnergy());
+				ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 
-	if (monster[0]->GetIsWeaken() > 0)
-		monster[0]->SetIsWeaken(monster[0]->GetIsWeaken() - 1);	
+				isPlayerTern = true;
+				monsterRandomPatternSetting = true;
+				playerActionCountSet = true;
+				ternPassButton->SetActive(true);
 
-	cout << ironClad->GetIsWeaken() << endl;
+				if (boss->GetIsWeaken() > 0)
+				{
+					boss->SetIsWeaken(boss->GetIsWeaken() - 1);
+				}
+				boss->SetNukeCount(6);
 
-	ironClad->SetDefend(0);
-	ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+				ironClad->SetDefend(0);
+				ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+			}
+		}
+		else
+		{
+			ironClad->SetCurEnergy(ironClad->GetMaxEnergy());
+			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+
+			isPlayerTern = true;
+			monsterRandomPatternSetting = true;
+			playerActionCountSet = true;
+			ternPassButton->SetActive(true);
+
+			if (boss->GetIsWeaken() > 0)
+			{
+				boss->SetIsWeaken(boss->GetIsWeaken() - 1);
+			}
+			boss->SetNukeCount(6);
+
+			ironClad->SetDefend(0);
+			ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+		}
+	}
+	else
+	{
+		ironClad->SetCurEnergy(ironClad->GetMaxEnergy());
+		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+
+		isPlayerTern = true;
+		monsterRandomPatternSetting = true;
+		playerActionCountSet = true;
+		ternPassButton->SetActive(true);
+
+		if (monster[0]->GetIsWeaken() > 0)
+			monster[0]->SetIsWeaken(monster[0]->GetIsWeaken() - 1);
+
+		ironClad->SetDefend(0);
+		ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+	}
 }
 
 void PlayUi::OptionUiControl()
@@ -1173,6 +1387,14 @@ void PlayUi::UiCreate()
 		addHp->SetAll(font, "", 40, Color::White, { -500,0 });
 		rewordText->SetAll(font, "REWORD!", 80, Color::White, { -500,0 });
 	}
+
+
+	// Boss
+	{
+		boss = new BossMonster(150, 150, 0, 0);
+		boss->SetAll(*RESOURCE_MGR->GetTexture("graphics/hexaghost.png"), 
+			{ monster[0]->GetPos().x, monster[0]->GetPos().y - 100 }, Origins::MC);
+	}
 }
 
 void PlayUi::SetActionUi(bool set)
@@ -1190,13 +1412,42 @@ void PlayUi::HpControl()
 {
 	float playerCurHpBarSet = (ironClad->GetMaxHP() - ironClad->GetCurHP()) * (80.f / ironClad->GetMaxHP() * 0.01f);
 	float monsterCurHpBarSet = (monster[0]->GetMaxHp() - monster[0]->GetCurHp()) * (80.f / monster[0]->GetMaxHp() * 0.01f);
-
+	float bossCurHpBarSet = (boss->GetMaxHp() - boss->GetCurHp()) * (80.f / boss->GetMaxHp() * 0.01f);
 
 	playerCurHpBar->SetScale(0.8f - playerCurHpBarSet, 1);
 	playerMaxHpBar->SetScale(0.8f, 1);
 
-	monsterCurHpBar->SetScale(0.8f - monsterCurHpBarSet, 1);
-	monsterMaxHpBar->SetScale(0.8f, 1);
+	if (stage == Stage::Monster)
+	{
+		monsterCurHpBar->SetScale(0.8f - monsterCurHpBarSet, 1);
+		monsterMaxHpBar->SetScale(0.8f, 1);
+
+		for (int i = 0; i < monster.size(); i++)
+		{
+			if (monster[i]->GetCurHp() <= 0)
+			{
+				monster[i]->SetCurHp(0);
+				monsterCurHp->SetText(to_string(monster[i]->GetCurHp()));
+				monsterCount--;
+				MonsterSet(monster, false);
+			}
+		}
+	}
+	if (stage == Stage::Boss) 
+	{
+		monsterCurHpBar->SetScale(0.8f - bossCurHpBarSet, 1);
+		monsterMaxHpBar->SetScale(0.8f, 1);
+		monsterCurHp->SetText(to_string(boss->GetCurHp()));
+		monsterMaxHp->SetText(to_string(boss->GetMaxHp()));
+
+		if (boss->GetCurHp() <= 0)
+		{
+			boss->SetCurHp(0);
+			monsterCurHp->SetText(to_string(boss->GetCurHp()));
+			boss->SetActive(false);
+			MonsterSet(monster, false);
+		}
+	}
 
 	if (ironClad->GetCurHP() <= 0)
 	{
@@ -1204,17 +1455,6 @@ void PlayUi::HpControl()
 		ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
 		curHp->SetText(to_string(ironClad->GetCurHP()));
 		ironClad->SetAlive(false);
-	}
-
-	for (int i = 0; i < monster.size(); i++)
-	{
-		if (monster[i]->GetCurHp() <= 0)
-		{
-			monster[i]->SetCurHp(0);
-			monsterCurHp->SetText(to_string(monster[i]->GetCurHp()));
-			monsterCount--;
-			MonsterSet(monster, false);
-		}
 	}
 
 	curHp->SetOrigin(Origins::MC);
@@ -1241,39 +1481,79 @@ void PlayUi::SetMonsterStage(float dt)
 {
 	SetActionUi(true);
 	MonsterSet(monster, true);
+
 	monsterPatternDelay -= dt;
 
 	// Tern Pass
-	if (Button::ButtonOnRect(*cursor, *ternPassButton) && isPlayerTern == true && monster[0]->GetAlive() == true && dieOrGiveup->GetActive() == false)
+	if (stage == Stage::Monster)
 	{
-		isHover = true;
-		if (isHover == true)
+		if (Button::ButtonOnRect(*cursor, *ternPassButton) &&
+			isPlayerTern == true &&
+			monster[0]->GetAlive() == true &&
+			dieOrGiveup->GetActive() == false)
 		{
-			if (uiHoverSoundPlay == true)
+			isHover = true;
+			if (isHover == true)
 			{
-				SOUND_MGR->Play("sounds/uiHover.wav", false);
-				uiHoverSoundPlay = false;
+				if (uiHoverSoundPlay == true)
+				{
+					SOUND_MGR->Play("sounds/uiHover.wav", false);
+					uiHoverSoundPlay = false;
+				}
+				ternPassButtonHover->SetActive(true);
 			}
-			ternPassButtonHover->SetActive(true);
-		}
 
-		if (InputMgr::GetMouseButtonUp(Mouse::Left))
+			if (InputMgr::GetMouseButtonUp(Mouse::Left))
+			{
+				SetMonsterTern();
+				isAttackSkill = false;
+				SOUND_MGR->Play("sounds/ternEnd.ogg", false);
+			}
+		}
+		else
 		{
-			SetMonsterTern();
-			isAttackSkill = false;
-			SOUND_MGR->Play("sounds/ternEnd.ogg", false);
+			uiHoverSoundPlay = true;
+			isHover = false;
+			ternPassButtonHover->SetActive(false);
 		}
 	}
-	else
+
+	if (stage == Stage::Boss)
 	{
-		uiHoverSoundPlay = true;
-		isHover = false;
-		ternPassButtonHover->SetActive(false);
+		if (Button::ButtonOnRect(*cursor, *ternPassButton) && 
+		isPlayerTern == true && 
+		boss->GetAlive() == true &&
+		dieOrGiveup->GetActive() == false)
+		{
+			isHover = true;
+			if (isHover == true)
+			{
+				if (uiHoverSoundPlay == true)
+				{
+					SOUND_MGR->Play("sounds/uiHover.wav", false);
+					uiHoverSoundPlay = false;
+				}
+				ternPassButtonHover->SetActive(true);
+			}
+
+			if (InputMgr::GetMouseButtonUp(Mouse::Left))
+			{
+				SetMonsterTern();
+				isAttackSkill = false;
+				SOUND_MGR->Play("sounds/ternEnd.ogg", false);
+			}
+		}
+		else
+		{
+			uiHoverSoundPlay = true;
+			isHover = false;
+			ternPassButtonHover->SetActive(false);
+		}
 	}
 
 	// Monster Tern Control
 	if (monsterPatternDelay <= 0.f && isPlayerTern == false)
-		MonsterAction(dt);
+		MonsterAction(dt); ////////////////////////////////////////////////
 
 	// Monster Pattern Set
 	if (isMonsterTern == true && monsterRandomPatternSetting == true)
@@ -1290,18 +1570,36 @@ void PlayUi::SetMonsterStage(float dt)
 	this->attackCount->SetOrigin(Origins::MC);
 	this->defendCount->SetOrigin(Origins::MC);
 
-	if (monsterCount == 0)
+	if (stage == Stage::Monster)
 	{
-		if (ironClad->GetType() == PlayerType::IronClad)
+		if (monsterCount == 0)
 		{
-			int hp = ironClad->GetCurHP();
-			hp + 6 >= ironClad->GetMaxHP() ? ironClad->SetCurHP(ironClad->GetMaxHP()) : ironClad->SetCurHP(hp += 6);
-			ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
-			curHp->SetText(to_string(ironClad->GetCurHP()));
-			playerActionCountSet = true;
+			if (ironClad->GetType() == PlayerType::IronClad)
+			{
+				int hp = ironClad->GetCurHP();
+				hp + 6 >= ironClad->GetMaxHP() ? ironClad->SetCurHP(ironClad->GetMaxHP()) : ironClad->SetCurHP(hp += 6);
+				ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
+				curHp->SetText(to_string(ironClad->GetCurHP()));
+				playerActionCountSet = true;
+			}
+			SetClearUi(true);
+			monsterKillCount++;
 		}
-		SetClearUi(true);
-		monsterKillCount++;
+	}
+	else if (stage == Stage::Boss)
+	{
+		if (boss->GetActive() == false)
+		{
+			if (ironClad->GetType() == PlayerType::IronClad)
+			{
+				ironClad->SetCurHP(ironClad->GetMaxHP());
+				ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
+				curHp->SetText(to_string(ironClad->GetCurHP()));
+				playerActionCountSet = true;
+			}
+			SetClearUi(true);
+			monsterKillCount++;
+		}
 	}
 }
 
@@ -1341,6 +1639,16 @@ void PlayUi::EnterTheStage(float dt)
 			}
 		}
 
+		//if (Button::ButtonOnRect(*cursor, *questionMapIcon) && questionMapOrder == choiceOrder)
+		//{
+		//	if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+		//	{
+		//		choiceDelay = 0.5f;
+		//		SOUND_MGR->Play("sounds/mapSelect.ogg", false);
+		//		mapChoice = true;
+		//	}
+		//}
+
 		if (Button::ButtonOnRect(*cursor, *shopMapIcon) && shopMapOrder == choiceOrder)
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
@@ -1376,8 +1684,13 @@ void PlayUi::EnterTheStage(float dt)
 			mapUi = false;
 			mapChoice = false;
 		}
+		if (choiceDelay <= 0.f && questionMapOrder == choiceOrder && mapChoice == true)
+		{
+			stage = Stage::Question;
+			mapUi = false;
+			mapChoice = false;
+		}
 	}
-	// boss
 }
 
 void PlayUi::QuestionStage()
@@ -1932,27 +2245,55 @@ void PlayUi::SetAttackSkillUi(bool set)
 
 void PlayUi::PlayerAttackDamage(int damage)
 {
-	if (monster[0]->GetDefend() > 0)
+	if (stage == Stage::Monster)
 	{
-		if (monster[0]->GetDefend() >= damage)
+		if (monster[0]->GetDefend() > 0)
 		{
-			int defend = monster[0]->GetDefend();
-			monster[0]->SetDefend(defend -= damage);
-			monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+			if (monster[0]->GetDefend() >= damage)
+			{
+				int defend = monster[0]->GetDefend();
+				monster[0]->SetDefend(defend -= damage);
+				monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+			}
+			else if (monster[0]->GetDefend() < damage)
+			{
+				int piercingDamage = damage - monster[0]->GetDefend();
+				monster[0]->SetDefend(0);
+				monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+				monster[0]->SetCurHp(monster[0]->GetCurHp() - piercingDamage);
+				monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
+			}
 		}
-		else if (monster[0]->GetDefend() < damage)
+		else
 		{
-			int piercingDamage = damage - monster[0]->GetDefend();
-			monster[0]->SetDefend(0);
-			monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
-			monster[0]->SetCurHp(monster[0]->GetCurHp() - piercingDamage);
+			monster[0]->SetCurHp(monster[0]->GetCurHp() - damage);
 			monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
 		}
 	}
-	else
+	else if (stage == Stage::Boss)
 	{
-		monster[0]->SetCurHp(monster[0]->GetCurHp() - damage);
-		monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
+		if (boss->GetDefend() > 0)
+		{
+			if (boss->GetDefend() >= damage)
+			{
+				int defend = boss->GetDefend();
+				boss->SetDefend(defend -= damage);
+				monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
+			}
+			else if (boss->GetDefend() < damage)
+			{
+				int piercingDamage = damage - boss->GetDefend();
+				boss->SetDefend(0);
+				monsterDefend->SetText("D : " + to_string(boss->GetDefend()));
+				boss->SetCurHp(boss->GetCurHp() - piercingDamage);
+				monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
+			}
+		}
+		else
+		{
+			boss->SetCurHp(boss->GetCurHp() - damage);
+			monsterCurHp->SetText(to_string(boss->GetCurHp()));
+		}
 	}
 }
 
@@ -1981,5 +2322,101 @@ void PlayUi::MonsterAttackDamage(int damage)
 		ironClad->SetCurHP(ironClad->GetCurHP() - damage);
 		ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
 		curHp->SetText(to_string(ironClad->GetCurHP()));
+	}
+}
+
+void PlayUi::AttackButtonControl(int monsterCount, float dt)
+{
+	int energy = ironClad->GetCurEnergy();
+	int defend = ironClad->GetDefend();
+
+	if (Button::ButtonOnRect(*cursor, *normalAttackButton) &&
+		ironClad->GetAttackCount() > 0 &&
+		energy > 0 &&
+		monsterCount > 0 &&
+		dieOrGiveup->GetActive() == false &&
+		normalAttackButton->GetActive() == true)
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Left))
+		{
+			int attCount = ironClad->GetAttackCount();
+
+			PlayerAttack(dt, Skill::Normal);
+			ironClad->SetCurEnergy(energy -= 1);
+			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+
+			ironClad->SetAttackCount(attCount -= 1);
+		}
+	}
+	if (Button::ButtonOnRect(*cursor, *attackSkillButton1) &&
+		ironClad->GetAttackCount() >= 2 &&
+		energy >= 2 &&
+		monsterCount > 0 &&
+		dieOrGiveup->GetActive() == false &&
+		smiteOn == true)
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Left))
+		{
+			int attCount = ironClad->GetAttackCount();
+
+			PlayerAttack(dt, Skill::Smite);
+			ironClad->SetCurEnergy(energy -= 2);
+			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+
+			ironClad->SetAttackCount(attCount -= 2);
+		}
+	}
+	if (Button::ButtonOnRect(*cursor, *attackSkillButton2) &&
+		ironClad->GetAttackCount() >= 3 &&
+		energy >= 3 &&
+		monsterCount > 0 &&
+		dieOrGiveup->GetActive() == false &&
+		clubbingOn == true)
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Left))
+		{
+			int attCount = ironClad->GetAttackCount();
+
+			PlayerAttack(dt, Skill::clubbing);
+			ironClad->SetCurEnergy(energy -= 3);
+			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+
+			ironClad->SetAttackCount(attCount -= 3);
+		}
+	}
+
+
+	if (Button::ButtonOnRect(*cursor, *defendButton) &&
+		ironClad->GetDefendCount() > 0 &&
+		energy > 0 &&
+		monsterCount > 0 &&
+		dieOrGiveup->GetActive() == false)
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Left))
+		{
+			int defCount = ironClad->GetDefendCount();
+
+			if (ironClad->GetIsWeaken() > 0)
+			{
+				int D = ironClad->GetAddDefend();
+				ironClad->SetWeakenDefend(D / 2);
+
+				ironClad->SetDefend(defend += ironClad->GetWeakenDefend());
+				ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+				ironClad->SetCurEnergy(energy -= 1);
+				ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+
+				ironClad->SetDefendCount(defCount -= 1);
+			}
+			else
+			{
+				ironClad->SetDefend(defend += ironClad->GetAddDefend());
+				ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+				ironClad->SetCurEnergy(energy -= 1);
+				ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+
+				ironClad->SetDefendCount(defCount -= 1);
+			}
+		}
 	}
 }

@@ -39,6 +39,7 @@ protected:
 	MonsterPattern patternType;
 
 public:
+	Monster() {};
 	Monster(int curH, int maxH, int defend, float damage, MonsterType t);
 	virtual ~Monster() {};
 

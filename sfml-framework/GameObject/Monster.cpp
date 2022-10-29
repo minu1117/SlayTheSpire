@@ -23,12 +23,7 @@ void Monster::Pattern(int pattern, float dt)
 
 	switch (pattern)
 	{
-	case 0:
-		SetIsAttack(true);
-		Attack(dt);
-		patternType = MonsterPattern::Attack;
-		break;
-	case 1:
+	case 0: case 1:
 		SetIsAttack(true);
 		Attack(dt);
 		patternType = MonsterPattern::Attack;

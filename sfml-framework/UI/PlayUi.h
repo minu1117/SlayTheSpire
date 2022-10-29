@@ -16,6 +16,7 @@ enum class Stage
 	Boss,
 };
 
+class BossMonster;
 class Monster;
 class PlayUi : public UiMgr
 {
@@ -78,6 +79,7 @@ protected:
 	int rewordMapOrder;
 	int questionMapOrder;
 	int shopMapOrder;
+	int bossMapOrder = 5;
 
 	int choiceOrder = 0;
 
@@ -112,7 +114,7 @@ protected:
 	SpriteObj* monsterCurHpBar;
 	SpriteObj* monsterMaxHpBar;
 
-	Stage stage = Stage::Start;
+	Stage stage = Stage::Boss;
 
 	SpriteObj* clearBackground;
 	SpriteObj* continueButton;
@@ -156,6 +158,11 @@ protected:
 	bool isChestOpen = false;
 
 
+	// boss
+	BossMonster* boss;
+	int bossCount = 1;
+	float nukeDelay = 0.2f;
+
 public:
 	PlayUi(Scene* scene);
 	~PlayUi();
@@ -172,7 +179,7 @@ public:
 	void SetActionUi(bool set);
 	void SetClearUi(bool set);
 
-	void MonsterAttack();
+	void MonsterAttack(float dt);
 	void PlayerAttack(float dt, Skill skill);
 
 	void MonsterSet(vector<Monster*> monster, bool set);
@@ -232,5 +239,8 @@ public:
 
 	void PlayerAttackDamage(int damage);
 	void MonsterAttackDamage(int damage);
+
+	void AttackButtonControl(int monsterCount, float dt);
+
 };
 
