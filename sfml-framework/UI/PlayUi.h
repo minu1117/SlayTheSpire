@@ -153,6 +153,7 @@ protected:
 	bool isAttackSkill = false;
 	bool smiteOn = false;
 	bool clubbingOn = false;
+	bool isChestOpen = false;
 
 
 public:

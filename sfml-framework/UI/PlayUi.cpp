@@ -156,6 +156,9 @@ void PlayUi::Update(float dt)
 	{
 		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 		{
+			if (stage == Stage::Reword)
+				isChestOpen = false;
+
 			if (stage == Stage::Monster)
 			{
 				int randomStage = Utils::RandomRange(0, 5);
@@ -1573,13 +1576,14 @@ void PlayUi::RewordStage()
 	Vector2f windowSize = (Vector2f)FRAMEWORK->GetWindowSize();
 
 	SetRewordMapUi(true);
-	if (Button::ButtonOnRect(*cursor, *chest))
+	if (Button::ButtonOnRect(*cursor, *chest) && isChestOpen == false)
 	{
 		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 		{
 			chest->SetTexture(*RESOURCE_MGR->GetTexture("graphics/largeChestOpened.png"));
 			SetRewordUi(true);
 			rewordUi = true;
+			isChestOpen = true;
 		}
 	}
 
@@ -1648,7 +1652,7 @@ void PlayUi::RewordStage()
 			break;
 		}
 
-		if (Button::ButtonOnRect(*cursor, *addGold) && addGold->GetActive() == true)
+		if (Button::ButtonOnRect(*cursor, *addGold) && addGold->GetActive() == true && isChestOpen == true)
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
@@ -1657,7 +1661,7 @@ void PlayUi::RewordStage()
 				addGold->SetActive(false);
 			}
 		}
-		if (Button::ButtonOnRect(*cursor, *addDamage) && addDamage->GetActive() == true)
+		if (Button::ButtonOnRect(*cursor, *addDamage) && addDamage->GetActive() == true && isChestOpen == true)
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
@@ -1666,7 +1670,7 @@ void PlayUi::RewordStage()
 				addDamage->SetActive(false);
 			}
 		}
-		if (Button::ButtonOnRect(*cursor, *addDefend) && addDefend->GetActive() == true)
+		if (Button::ButtonOnRect(*cursor, *addDefend) && addDefend->GetActive() == true && isChestOpen == true)
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
@@ -1674,7 +1678,7 @@ void PlayUi::RewordStage()
 				addDefend->SetActive(false);
 			}
 		}
-		if (Button::ButtonOnRect(*cursor, *addHp) && addHp->GetActive() == true)
+		if (Button::ButtonOnRect(*cursor, *addHp) && addHp->GetActive() == true && isChestOpen == true)
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
@@ -1914,6 +1918,7 @@ void PlayUi::ResetPlayUi()
 	choiceOrder = 0;
 	smiteOn = false;
 	clubbingOn = false;
+	isChestOpen = false;
 	stage = Stage::Start;
 	SOUND_MGR->StopAll();
 }
