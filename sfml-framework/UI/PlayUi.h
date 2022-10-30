@@ -74,12 +74,19 @@ protected:
 	SpriteObj* rewordMapIcon;
 	SpriteObj* questionMapIcon;
 	SpriteObj* shopMapIcon;
+	SpriteObj* bossMapIcon;
+	SpriteObj* bossMapIconOutLine;
+
+	SpriteObj* monsterMapIconOutLine;
+	SpriteObj* rewordMapIconOutLine;
+	SpriteObj* shopMapIconOutLine;
+	SpriteObj* questionMapIconOutLine;
 
 	int monsterMapOrder;
 	int rewordMapOrder;
 	int questionMapOrder;
 	int shopMapOrder;
-	int bossMapOrder = 5;
+	int bossMapOrder = 4;
 
 	int choiceOrder = 0;
 
@@ -114,7 +121,7 @@ protected:
 	SpriteObj* monsterCurHpBar;
 	SpriteObj* monsterMaxHpBar;
 
-	Stage stage = Stage::Boss;
+	Stage stage = Stage::Start;
 
 	SpriteObj* clearBackground;
 	SpriteObj* continueButton;

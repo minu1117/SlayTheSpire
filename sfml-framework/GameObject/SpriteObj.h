@@ -26,5 +26,6 @@ public:
 	void SetScale(float x, float y);
 	void SetRotation(float angle);
 	float GetRotate() const { return sprite.getRotation(); };
+	void SetFillColor(Color color) { sprite.setColor(color); };
 };
 

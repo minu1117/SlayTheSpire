@@ -94,10 +94,19 @@ void PlayUi::Init()
 	// map
 	uiObjList.push_back(mapBackground);
 	uiObjList.push_back(map);
+
+	uiObjList.push_back(monsterMapIconOutLine);
+	uiObjList.push_back(rewordMapIconOutLine);
+	uiObjList.push_back(shopMapIconOutLine);
+	uiObjList.push_back(questionMapIconOutLine);
+
 	uiObjList.push_back(monsterMapIcon);
 	uiObjList.push_back(rewordMapIcon);
 	uiObjList.push_back(questionMapIcon);
 	uiObjList.push_back(shopMapIcon);
+	uiObjList.push_back(bossMapIconOutLine);
+	uiObjList.push_back(bossMapIcon);
+
 
 	// option
 	uiObjList.push_back(optionBackground);
@@ -168,6 +177,7 @@ void PlayUi::Update(float dt)
 	{
 		MonsterSet(monster, false);
 		SetActionUi(false);
+		SetClearUi(false);
 		StartMapPlayerUpgrade(dt);
 	}
 
@@ -284,6 +294,11 @@ void PlayUi::Update(float dt)
 
 	if (stage == Stage::Boss)
 	{
+		bossPlasma1->SetActive(true);
+		bossPlasma2->SetActive(true);
+		bossPlasma3->SetActive(true);
+		bossShadow->SetActive(true);
+
 		bossPlasma1->SetRotation(bossPlasma1->GetRotate() + dt * 30);
 		bossPlasma2->SetRotation(bossPlasma2->GetRotate() - dt * 40);
 		bossPlasma3->SetRotation(bossPlasma3->GetRotate() + dt * 50);
@@ -318,6 +333,10 @@ void PlayUi::Update(float dt)
 	else
 	{
 		boss->SetActive(false);
+		bossPlasma1->SetActive(false);
+		bossPlasma2->SetActive(false);
+		bossPlasma3->SetActive(false);
+		bossShadow->SetActive(false);
 	}
 
 	if (stage == Stage::Monster || stage == Stage::Boss)
@@ -339,8 +358,9 @@ void PlayUi::Update(float dt)
 	}
 	else
 	{
+		MonsterSet(monster, false);
 		SetActionUi(false);
-		SetClearUi(false);
+		clearBackground->SetActive(false);
 		ternPassButtonHover->SetActive(false);
 		isAttackSkill = false;
 	}
@@ -401,6 +421,8 @@ void PlayUi::SetMapUi(bool set)
 	rewordMapIcon->SetActive(set);
 	questionMapIcon->SetActive(set);
 	shopMapIcon->SetActive(set);
+	bossMapIcon->SetActive(set);
+	bossMapIconOutLine->SetActive(set);
 }
 
 void PlayUi::SetGiveUpUi(bool set)
@@ -598,6 +620,20 @@ void PlayUi::MonsterSet(vector<Monster*> monster, bool set)
 			monsterCurHpBar->SetActive(set);
 			monsterMaxHpBar->SetActive(set);
 		}
+	}
+	else
+	{
+		monster[0]->SetActive(false);
+		monster[0]->SetAlive(false);
+		boss->SetAlive(false);
+		boss->SetActive(false);
+		monsterCurHp->SetActive(false);
+		monsterMaxHp->SetActive(false);
+		monsterDamage->SetActive(false);
+		monsterDefend->SetActive(false);
+		monsterPattern->SetActive(false);
+		monsterCurHpBar->SetActive(false);
+		monsterMaxHpBar->SetActive(false);
 	}
 }
 
@@ -1266,11 +1302,19 @@ void PlayUi::UiCreate()
 		rewordMapIcon = new SpriteObj();
 		questionMapIcon = new SpriteObj();
 		shopMapIcon = new SpriteObj();
+		bossMapIcon = new SpriteObj();
+		bossMapIconOutLine = new SpriteObj();
+		monsterMapIconOutLine = new SpriteObj();
+		rewordMapIconOutLine = new SpriteObj();
+		shopMapIconOutLine = new SpriteObj();
+		questionMapIconOutLine = new SpriteObj();
 
 		monsterMapIcon->SetAll(*RESOURCE_MGR->GetTexture("graphics/monsterMapIcon.png"), { 0, 0 }, Origins::MC);
 		rewordMapIcon->SetAll(*RESOURCE_MGR->GetTexture("graphics/rewordMapIcon.png"), { 0, 0 }, Origins::MC);
 		questionMapIcon->SetAll(*RESOURCE_MGR->GetTexture("graphics/questionMapIcon.png"), { 0, 0 }, Origins::MC);
 		shopMapIcon->SetAll(*RESOURCE_MGR->GetTexture("graphics/shopMapIcon.png"), { 0, 0 }, Origins::MC);
+		bossMapIcon->SetAll(*RESOURCE_MGR->GetTexture("graphics/hexaghost.png"), { 0, 0 }, Origins::MC);
+		bossMapIconOutLine->SetAll(*RESOURCE_MGR->GetTexture("graphics/hexaghostOutLine.png"), { 0, 0 }, Origins::MC);
 	}
 
 	// Map Creat
@@ -1284,10 +1328,10 @@ void PlayUi::UiCreate()
 		switch (randomMap)
 		{
 		case 0:
-			monsterMapIconYPos = windowSize.y * 0.7f;
-			questionMapIconYPos = windowSize.y * 0.6f;
-			shopMapIconYPos = windowSize.y * 0.5f;
-			rewordMapIconYPos = windowSize.y * 0.4f;
+			monsterMapIconYPos = windowSize.y * 0.9f;
+			questionMapIconYPos = windowSize.y * 0.8f;
+			shopMapIconYPos = windowSize.y * 0.7f;
+			rewordMapIconYPos = windowSize.y * 0.6f;
 
 			monsterMapOrder = 0;
 			questionMapOrder = 1;
@@ -1297,10 +1341,10 @@ void PlayUi::UiCreate()
 			break;
 
 		case 1:
-			monsterMapIconYPos = windowSize.y * 0.6f;
-			questionMapIconYPos = windowSize.y * 0.7f;
-			shopMapIconYPos = windowSize.y * 0.4f;
-			rewordMapIconYPos = windowSize.y * 0.5f;
+			monsterMapIconYPos = windowSize.y * 0.8f;
+			questionMapIconYPos = windowSize.y * 0.9f;
+			shopMapIconYPos = windowSize.y * 0.6f;
+			rewordMapIconYPos = windowSize.y * 0.7f;
 
 			monsterMapOrder = 1;
 			questionMapOrder = 0;
@@ -1310,10 +1354,10 @@ void PlayUi::UiCreate()
 			break;
 
 		case 2:
-			monsterMapIconYPos = windowSize.y * 0.5f;
-			questionMapIconYPos = windowSize.y * 0.4f;
-			shopMapIconYPos = windowSize.y * 0.6f;
-			rewordMapIconYPos = windowSize.y * 0.7f;
+			monsterMapIconYPos = windowSize.y * 0.7f;
+			questionMapIconYPos = windowSize.y * 0.6f;
+			shopMapIconYPos = windowSize.y * 0.8f;
+			rewordMapIconYPos = windowSize.y * 0.9f;
 
 			monsterMapOrder = 2;
 			questionMapOrder = 3;
@@ -1323,10 +1367,10 @@ void PlayUi::UiCreate()
 			break;
 
 		case 3:
-			monsterMapIconYPos = windowSize.y * 0.4f;
-			questionMapIconYPos = windowSize.y * 0.5f;
-			shopMapIconYPos = windowSize.y * 0.7f;
-			rewordMapIconYPos = windowSize.y * 0.6f;
+			monsterMapIconYPos = windowSize.y * 0.6f;
+			questionMapIconYPos = windowSize.y * 0.7f; 
+			shopMapIconYPos = windowSize.y * 0.9f;
+			rewordMapIconYPos = windowSize.y * 0.8f;
 
 			monsterMapOrder = 3;
 			questionMapOrder = 2;
@@ -1340,6 +1384,19 @@ void PlayUi::UiCreate()
 		rewordMapIcon->SetPos({ windowSize.x * 0.5f, rewordMapIconYPos });
 		questionMapIcon->SetPos({ windowSize.x * 0.5f, questionMapIconYPos });
 		shopMapIcon->SetPos({ windowSize.x * 0.5f, shopMapIconYPos });
+		bossMapIcon->SetPos({ windowSize.x * 0.5f, windowSize.y * 0.3f });
+		bossMapIconOutLine->SetPos({ windowSize.x * 0.5f, windowSize.y * 0.3f });
+
+		monsterMapIcon->SetFillColor(Color::Black);
+		rewordMapIcon->SetFillColor(Color::Black);
+		questionMapIcon->SetFillColor(Color::Black);
+		shopMapIcon->SetFillColor(Color::Black);
+		bossMapIcon->SetFillColor(Color::Black);
+
+		monsterMapIconOutLine->SetAll(*RESOURCE_MGR->GetTexture("graphics/monsterOutline.png"), monsterMapIcon->GetPos(), Origins::MC);
+		rewordMapIconOutLine->SetAll(*RESOURCE_MGR->GetTexture("graphics/chestOutline.png"), rewordMapIcon->GetPos(), Origins::MC);
+		shopMapIconOutLine->SetAll(*RESOURCE_MGR->GetTexture("graphics/shopOutline.png"), shopMapIcon->GetPos(), Origins::MC);
+		questionMapIconOutLine->SetAll(*RESOURCE_MGR->GetTexture("graphics/eventOutline.png"), questionMapIcon->GetPos(), Origins::MC);
 	}
 
 	// die
@@ -1637,6 +1694,7 @@ void PlayUi::EnterTheStage(float dt)
 	{
 		if (Button::ButtonOnRect(*cursor, *monsterMapIcon) && monsterMapOrder == choiceOrder)
 		{
+			monsterMapIconOutLine->SetActive(true);
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
 				choiceDelay = 0.5f;
@@ -1644,9 +1702,12 @@ void PlayUi::EnterTheStage(float dt)
 				mapChoice = true;
 			}
 		}
+		else
+			monsterMapIconOutLine->SetActive(false);
 
 		if (Button::ButtonOnRect(*cursor, *rewordMapIcon) && rewordMapOrder == choiceOrder)
 		{
+			rewordMapIconOutLine->SetActive(true);
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
 				choiceDelay = 0.5f;
@@ -1654,9 +1715,12 @@ void PlayUi::EnterTheStage(float dt)
 				mapChoice = true;
 			}
 		}
+		else
+			rewordMapIconOutLine->SetActive(false);
 
 		if (Button::ButtonOnRect(*cursor, *questionMapIcon) && questionMapOrder == choiceOrder)
 		{
+			questionMapIconOutLine->SetActive(true);
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
 				choiceDelay = 0.5f;
@@ -1664,19 +1728,12 @@ void PlayUi::EnterTheStage(float dt)
 				mapChoice = true;
 			}
 		}
-
-		//if (Button::ButtonOnRect(*cursor, *questionMapIcon) && questionMapOrder == choiceOrder)
-		//{
-		//	if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
-		//	{
-		//		choiceDelay = 0.5f;
-		//		SOUND_MGR->Play("sounds/mapSelect.ogg", false);
-		//		mapChoice = true;
-		//	}
-		//}
+		else
+			questionMapIconOutLine->SetActive(false);
 
 		if (Button::ButtonOnRect(*cursor, *shopMapIcon) && shopMapOrder == choiceOrder)
 		{
+			shopMapIconOutLine->SetActive(true);
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
 				choiceDelay = 0.5f;
@@ -1684,6 +1741,22 @@ void PlayUi::EnterTheStage(float dt)
 				mapChoice = true;
 			}
 		}
+		else
+			shopMapIconOutLine->SetActive(false);
+
+
+		if (Button::ButtonOnRect(*cursor, *bossMapIcon) && bossMapOrder == choiceOrder)
+		{
+			bossMapIconOutLine->SetActive(true);
+			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
+			{
+				choiceDelay = 0.5f;
+				SOUND_MGR->Play("sounds/mapSelect.ogg", false);
+				mapChoice = true;
+			}
+		}
+		else
+			bossMapIconOutLine->SetActive(false);
 
 
 		if (choiceDelay <= 0.f && monsterMapOrder == choiceOrder && mapChoice == true)
@@ -1710,12 +1783,20 @@ void PlayUi::EnterTheStage(float dt)
 			mapUi = false;
 			mapChoice = false;
 		}
-		if (choiceDelay <= 0.f && questionMapOrder == choiceOrder && mapChoice == true)
+		if (choiceDelay <= 0.f && bossMapOrder == choiceOrder && mapChoice == true)
 		{
-			stage = Stage::Question;
+			stage = Stage::Boss;
 			mapUi = false;
 			mapChoice = false;
 		}
+	}
+	else
+	{
+		monsterMapIconOutLine->SetActive(false);
+		rewordMapIconOutLine->SetActive(false);
+		shopMapIconOutLine->SetActive(false);
+		questionMapIconOutLine->SetActive(false);
+		bossMapIconOutLine->SetActive(false);
 	}
 }
 
@@ -1811,17 +1892,21 @@ void PlayUi::ShopStage()
 	{
 		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 30 && energyUp->GetActive() == true)
 		{
-			int e = ironClad->GetCurEnergy();
-			int maxe = ironClad->GetMaxEnergy();
-			ironClad->SetMaxEnergy(e += 1);
-			ironClad->SetCurEnergy(maxe += 1);
+			if (ironClad->GetMaxEnergy() < 9)
+			{
+				int e = ironClad->GetCurEnergy();
+				int maxe = ironClad->GetMaxEnergy();
+				ironClad->SetMaxEnergy(e += 1);
+				ironClad->SetCurEnergy(maxe += 1);
 
-			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
-			ironCladMaxEnergy->SetText(to_string(ironClad->GetMaxEnergy()));
+				ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
+				ironCladMaxEnergy->SetText(to_string(ironClad->GetMaxEnergy()));
 
-			ironClad->SetGold(ironClad->GetCurGold() - 30);
-			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
-			// 돈 사운드
+				ironClad->SetGold(ironClad->GetCurGold() - 30);
+				gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
+
+				// 돈 사운드
+			}
 		}
 	}
 	if (Button::ButtonOnRect(*cursor, *defenseUp))

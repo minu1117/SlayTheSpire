@@ -67,8 +67,8 @@ public:
 
 	int GetCurEnergy() const { return curEnergy; };
 	void SetCurEnergy(int energy) 
-	{ if (curEnergy < 9) curEnergy = energy; };
-	void SetMaxEnergy(int max) { if (maxEnergy < 9) maxEnergy = max; };
+	{ if (curEnergy <= 9) curEnergy = energy; };
+	void SetMaxEnergy(int max) { if (maxEnergy <= 9) maxEnergy = max; };
 	int GetMaxEnergy() const { return maxEnergy; };
 
 	void SetDefend(int def) { defend = def; };
