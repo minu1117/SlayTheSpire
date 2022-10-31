@@ -89,3 +89,14 @@ graphics/chestOutline.png,0
 graphics/floor.png,0
 graphics/eventOutline.png,0
 graphics/ending.png,0
+sounds/debuff.ogg,2
+sounds/defenseBreak.ogg,2
+sounds/enemyAttack.ogg,2
+sounds/enemyTern.ogg,2
+sounds/normalMonsterAttack.ogg,2
+sounds/playerDefense.ogg,2
+sounds/playerHeavyAttack.ogg,2
+sounds/playerTern.ogg,2
+sounds/playerTernStart.ogg,2
+sounds/bossHeavyAttack.ogg,2
+sounds/bossAttack.ogg,2

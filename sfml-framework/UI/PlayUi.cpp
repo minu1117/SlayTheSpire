@@ -83,6 +83,8 @@ void PlayUi::Init()
 
 
 	// player
+	uiObjList.push_back(energyVFX);
+	uiObjList.push_back(energyLayer);
 	uiObjList.push_back(playerMaxHpBar);
 	uiObjList.push_back(playerCurHpBar);
 	uiObjList.push_back(ironClad);
@@ -112,6 +114,11 @@ void PlayUi::Init()
 	uiObjList.push_back(shopMapIcon);
 	uiObjList.push_back(bossMapIconOutLine);
 	uiObjList.push_back(bossMapIcon);
+
+	for (int i = 0; i < 4; i++)
+		uiObjList.push_back(mapClearIcon[i]);
+
+	uiObjList.push_back(mapChoiceCircle);
 
 
 	// option
@@ -162,6 +169,8 @@ void PlayUi::Update(float dt)
 	// Player / Monster HP, HP Bar Control
 	HpControl();
 	EnterTheStage(dt);
+
+	energyVFX->SetRotation(energyVFX->GetRotate() + dt * 20);
 
 	if (stage == Stage::Monster)
 		monsterPattern->SetPos({ monster[0]->GetPos().x - 30, monster[0]->GetPos().y - monster[0]->GetSize().y / 2 - 10});
@@ -478,7 +487,25 @@ void PlayUi::SetMapUi(bool set)
 	questionMapIcon->SetActive(set);
 	shopMapIcon->SetActive(set);
 	bossMapIcon->SetActive(set);
-	bossMapIconOutLine->SetActive(set);
+
+	if (choiceOrder == 0)
+	{
+		for (int i = 0; i < mapClearIcon.size(); i++)
+		{
+			mapClearIcon[i]->SetActive(false);
+		}
+	}
+	else
+	{
+		if (choiceOrder >= 1)
+			mapClearIcon[3]->SetActive(set);
+		if (choiceOrder >= 2)
+			mapClearIcon[2]->SetActive(set);
+		if (choiceOrder >= 3)
+			mapClearIcon[1]->SetActive(set);
+		if (choiceOrder >= 4)
+			mapClearIcon[0]->SetActive(set);
+	}
 }
 
 void PlayUi::SetGiveUpUi(bool set)
@@ -504,6 +531,8 @@ void PlayUi::MonsterAttack(float dt)
 			MonsterAttackDamage(boss->GetDamage());
 		else if (boss->GetIsWeaken() > 0)
 			MonsterAttackDamage(boss->GetDamage() / 2);
+
+		SOUND_MGR->Play("sounds/bossAttack.ogg", false);
 	}
 
 	if (ironClad->GetAlive() == true)
@@ -854,14 +883,21 @@ void PlayUi::MonsterAction(float dt)
 	{
 		monster[0]->Pattern(randomMonsterPattern, dt);
 		if (monster[0]->GetPattern() == MonsterPattern::Attack)
+		{
 			MonsterAttack(dt);
+			SOUND_MGR->Play("sounds/enemyAttack.ogg", false);
+		}
 
 		if (monster[0]->GetPattern() == MonsterPattern::Weaken)
 		{
 			ironClad->SetIsWeaken(ironClad->GetIsWeaken() + 1);
 			ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage() / 2));
+			SOUND_MGR->Play("sounds/debuff.ogg", false);
 			ironClad->SetIsWeakenMotion(true);
 		}
+
+		if (monster[0]->GetPattern() == MonsterPattern::Defence)
+			SOUND_MGR->Play("sounds/defence.ogg", false);
 
 		monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
 	}
@@ -869,9 +905,13 @@ void PlayUi::MonsterAction(float dt)
 	{
 		boss->BossPattenSet(randomMonsterPattern, ironClad);
 
-		if (boss->GetBossPattern() == BossPattern::NormalAttack ||
-			boss->GetBossPattern() == BossPattern::Smite)
+		if (boss->GetBossPattern() == BossPattern::NormalAttack)
 		{
+			MonsterAttack(dt);
+		}
+		if (boss->GetBossPattern() == BossPattern::Smite)
+		{
+			//SOUND_MGR->Play("sounds/bossHeaveyAttack.ogg", false);
 			MonsterAttack(dt);
 		}
 
@@ -880,6 +920,7 @@ void PlayUi::MonsterAction(float dt)
 			ironClad->SetIsWeaken(ironClad->GetIsWeaken() + 1);
 			ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage() / 2));
 			ironClad->SetIsWeakenMotion(true);
+			SOUND_MGR->Play("sounds/debuff.ogg", false);
 		}
 
 		if (boss->GetBossPattern() == BossPattern::Nuke)
@@ -892,6 +933,11 @@ void PlayUi::MonsterAction(float dt)
 				boss->SetNukeCount(boss->GetNukeCount() - 1);
 				nukeDelay = 0.2f;
 			}
+		}
+
+		if (boss->GetBossPattern() == BossPattern::Defense)
+		{
+			SOUND_MGR->Play("sounds/defence.ogg", false);
 		}
 
 		monsterDefend->SetText("D : " + to_string(boss->GetDefend()));
@@ -1060,7 +1106,6 @@ void PlayUi::MapUiControl()
 		}
 	}
 
-
 	mapUi == true ? SetMapUi(true) : SetMapUi(false);
 }
 
@@ -1216,12 +1261,12 @@ void PlayUi::UiCreate()
 			ironCladMaxHp->SetAll(font, "/ " + to_string(ironClad->GetMaxHP()), 30, Color::White,
 				{ ironCladCurHp->GetPos().x + 40, setPlayerUiPos.y });
 
-			ironCladCurEnergy->SetAll(font, to_string(ironClad->GetCurEnergy()), 30, Color::White,
+			ironCladCurEnergy->SetAll(font, to_string(ironClad->GetCurEnergy()), 30, Color::Black,
 				{ 100, windowSize.y - 100 });
 			ironCladCurEnergy->SetOrigin(Origins::MC);
 
-			ironCladMaxEnergy->SetAll(font, to_string(ironClad->GetMaxEnergy()), 30, Color::White,
-				{ ironCladCurEnergy->GetPos().x + 20, ironCladCurEnergy->GetPos().y });
+			ironCladMaxEnergy->SetAll(font, "    / " + to_string(ironClad->GetMaxEnergy()), 30, Color::Black,
+				{ ironCladCurEnergy->GetPos().x + 20, ironCladCurEnergy->GetPos().y + 3 });
 			ironCladMaxEnergy->SetOrigin(Origins::MC);
 
 			ironCladCurDefend->SetAll(font, "D : " + to_string(ironClad->GetDefend()), 30, Color::White,
@@ -1397,6 +1442,7 @@ void PlayUi::UiCreate()
 		shopMapIcon->SetAll(*RESOURCE_MGR->GetTexture("graphics/shopMapIcon.png"), { 0, 0 }, Origins::MC);
 		bossMapIcon->SetAll(*RESOURCE_MGR->GetTexture("graphics/hexaghost.png"), { 0, 0 }, Origins::MC);
 		bossMapIconOutLine->SetAll(*RESOURCE_MGR->GetTexture("graphics/hexaghostOutLine.png"), { 0, 0 }, Origins::MC);
+		bossMapIconOutLine->SetActive(false);
 	}
 
 	// Map Creat
@@ -1479,6 +1525,21 @@ void PlayUi::UiCreate()
 		rewordMapIconOutLine->SetAll(*RESOURCE_MGR->GetTexture("graphics/chestOutline.png"), rewordMapIcon->GetPos(), Origins::MC);
 		shopMapIconOutLine->SetAll(*RESOURCE_MGR->GetTexture("graphics/shopOutline.png"), shopMapIcon->GetPos(), Origins::MC);
 		questionMapIconOutLine->SetAll(*RESOURCE_MGR->GetTexture("graphics/eventOutline.png"), questionMapIcon->GetPos(), Origins::MC);
+	
+		for (int i = 0; i < 4; i++)
+			mapClearIcon.push_back(new SpriteObj());
+
+		mapClearIcon[0]->SetAll(*RESOURCE_MGR->GetTexture("graphics/mapCompleteIcon.png"), { windowSize.x * 0.5f, windowSize.y * 0.6f }, Origins::MC);
+		mapClearIcon[1]->SetAll(*RESOURCE_MGR->GetTexture("graphics/mapCompleteIcon.png"), { windowSize.x * 0.5f, windowSize.y * 0.7f }, Origins::MC);
+		mapClearIcon[2]->SetAll(*RESOURCE_MGR->GetTexture("graphics/mapCompleteIcon.png"), { windowSize.x * 0.5f, windowSize.y * 0.8f }, Origins::MC);
+		mapClearIcon[3]->SetAll(*RESOURCE_MGR->GetTexture("graphics/mapCompleteIcon.png"), { windowSize.x * 0.5f, windowSize.y * 0.9f }, Origins::MC);
+	
+		for (int i = 0; i < mapClearIcon.size(); i++)
+			mapClearIcon[i]->SetScale(1.5f, 1.5f);
+
+		mapChoiceCircle = new SpriteObj();
+		mapChoiceCircle->SetAll(*RESOURCE_MGR->GetTexture("graphics/circle.png"), {0, 0}, Origins::MC);
+		mapChoiceCircle->SetActive(false);
 	}
 
 	// die
@@ -1555,6 +1616,16 @@ void PlayUi::UiCreate()
 		bossPlasma2->SetAll(*RESOURCE_MGR->GetTexture("graphics/plasma2.png"), boss->GetPos(), Origins::MC);
 		bossPlasma3->SetAll(*RESOURCE_MGR->GetTexture("graphics/plasma3.png"), boss->GetPos(), Origins::MC);
 		bossShadow->SetAll(*RESOURCE_MGR->GetTexture("graphics/shadow.png"), boss->GetPos(), Origins::MC);
+	}
+
+	// energy
+	{
+		energyLayer = new SpriteObj();
+		energyVFX = new SpriteObj();
+
+		energyLayer->SetAll(*RESOURCE_MGR->GetTexture("graphics/energyLayer.png"), ironCladMaxEnergy->GetPos(), Origins::MC);
+		energyVFX->SetAll(*RESOURCE_MGR->GetTexture("graphics/energyRedVFX.png"), energyLayer->GetPos(), Origins::MC);
+		energyVFX->SetScale(0.6f, 0.6f);
 	}
 }
 
@@ -1781,6 +1852,8 @@ void PlayUi::EnterTheStage(float dt)
 			{
 				choiceDelay = 0.5f;
 				SOUND_MGR->Play("sounds/mapSelect.ogg", false);
+				mapChoiceCircle->SetPos(monsterMapIcon->GetPos());
+				mapChoiceCircle->SetActive(true);
 				mapChoice = true;
 			}
 		}
@@ -1794,6 +1867,8 @@ void PlayUi::EnterTheStage(float dt)
 			{
 				choiceDelay = 0.5f;
 				SOUND_MGR->Play("sounds/mapSelect.ogg", false);
+				mapChoiceCircle->SetPos(rewordMapIcon->GetPos());
+				mapChoiceCircle->SetActive(true);
 				mapChoice = true;
 			}
 		}
@@ -1807,6 +1882,8 @@ void PlayUi::EnterTheStage(float dt)
 			{
 				choiceDelay = 0.5f;
 				SOUND_MGR->Play("sounds/mapSelect.ogg", false);
+				mapChoiceCircle->SetPos(questionMapIcon->GetPos());
+				mapChoiceCircle->SetActive(true);
 				mapChoice = true;
 			}
 		}
@@ -1820,6 +1897,8 @@ void PlayUi::EnterTheStage(float dt)
 			{
 				choiceDelay = 0.5f;
 				SOUND_MGR->Play("sounds/mapSelect.ogg", false);
+				mapChoiceCircle->SetPos(shopMapIcon->GetPos());
+				mapChoiceCircle->SetActive(true);
 				mapChoice = true;
 			}
 		}
@@ -1844,24 +1923,28 @@ void PlayUi::EnterTheStage(float dt)
 		if (choiceDelay <= 0.f && monsterMapOrder == choiceOrder && mapChoice == true)
 		{
 			stage = Stage::Monster;
+			mapChoiceCircle->SetActive(false);
 			mapUi = false;
 			mapChoice = false;
 		}
 		if (choiceDelay <= 0.f && rewordMapOrder == choiceOrder && mapChoice == true)
 		{
 			stage = Stage::Reword;
+			mapChoiceCircle->SetActive(false);
 			mapUi = false;
 			mapChoice = false;
 		}
 		if (choiceDelay <= 0.f && shopMapOrder == choiceOrder && mapChoice == true)
 		{
 			stage = Stage::Shop;
+			mapChoiceCircle->SetActive(false);
 			mapUi = false;
 			mapChoice = false;
 		}
 		if (choiceDelay <= 0.f && questionMapOrder == choiceOrder && mapChoice == true)
 		{
 			stage = Stage::Question;
+			mapChoiceCircle->SetActive(false);
 			mapUi = false;
 			mapChoice = false;
 		}
@@ -1982,7 +2065,7 @@ void PlayUi::ShopStage()
 				ironClad->SetCurEnergy(maxe += 1);
 
 				ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
-				ironCladMaxEnergy->SetText(to_string(ironClad->GetMaxEnergy()));
+				ironCladMaxEnergy->SetText("    / " + to_string(ironClad->GetMaxEnergy()));
 
 				ironClad->SetGold(ironClad->GetCurGold() - 30);
 				gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
@@ -2298,7 +2381,7 @@ void PlayUi::StartMapPlayerUpgrade(float dt)
 
 
 				ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
-				ironCladMaxEnergy->SetText(to_string(ironClad->GetMaxEnergy()));
+				ironCladMaxEnergy->SetText("    / " + to_string(ironClad->GetMaxEnergy()));
 
 				choice1->SetActive(false);
 				choice2->SetActive(false);
@@ -2541,6 +2624,8 @@ void PlayUi::AttackButtonControl(int monsterCount, float dt)
 			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 
 			ironClad->SetAttackCount(attCount -= 1);
+
+			SOUND_MGR->Play("sounds/attack.ogg", false);
 		}
 	}
 	if (Button::ButtonOnRect(*cursor, *attackSkillButton1) &&
@@ -2559,6 +2644,8 @@ void PlayUi::AttackButtonControl(int monsterCount, float dt)
 			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 
 			ironClad->SetAttackCount(attCount -= 2);
+
+			SOUND_MGR->Play("sounds/playerHeavyAttack.ogg", false);
 		}
 	}
 	if (Button::ButtonOnRect(*cursor, *attackSkillButton2) &&
@@ -2577,6 +2664,8 @@ void PlayUi::AttackButtonControl(int monsterCount, float dt)
 			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 
 			ironClad->SetAttackCount(attCount -= 3);
+
+			SOUND_MGR->Play("sounds/heavyAttack.ogg", false);
 		}
 	}
 

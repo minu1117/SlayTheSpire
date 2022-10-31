@@ -122,7 +122,7 @@ protected:
 	SpriteObj* monsterCurHpBar;
 	SpriteObj* monsterMaxHpBar;
 
-	Stage stage = Stage::Start;
+	Stage stage = Stage::Boss;
 
 	SpriteObj* clearBackground;
 	SpriteObj* continueButton;
@@ -182,6 +182,15 @@ protected:
 	SpriteObj* bossShadow;
 
 	float dieDelay;
+
+
+	//energy image
+	SpriteObj* energyLayer;
+	SpriteObj* energyVFX;
+
+	// map clear icon
+	vector<SpriteObj*> mapClearIcon;
+	SpriteObj* mapChoiceCircle;
 
 public:
 	PlayUi(Scene* scene);
