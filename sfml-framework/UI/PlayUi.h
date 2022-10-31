@@ -22,6 +22,9 @@ class Monster;
 class PlayUi : public UiMgr
 {
 protected:
+	bool gameSound = true;
+	bool bossStageSound = false;
+
 	SpriteObj* tempBackground;
 
 	// ironClad
@@ -186,11 +189,20 @@ protected:
 
 	//energy image
 	SpriteObj* energyLayer;
-	SpriteObj* energyVFX;
+	SpriteObj* energyLayer1;
+	SpriteObj* energyLayer2;
+	SpriteObj* energyLayer3;
+	SpriteObj* energyLayer4;
+	SpriteObj* energyLayer5;
+
 
 	// map clear icon
 	vector<SpriteObj*> mapClearIcon;
 	SpriteObj* mapChoiceCircle;
+
+	// Weaken Text
+	TextObj* playerWeakenText;
+	TextObj* monsterWeakenText;
 
 public:
 	PlayUi(Scene* scene);
@@ -273,4 +285,3 @@ public:
 
 	void SetGameClearUi(bool set);
 };
-

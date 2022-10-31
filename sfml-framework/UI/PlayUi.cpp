@@ -75,6 +75,7 @@ void PlayUi::Init()
 	uiObjList.push_back(monsterMaxHp);
 	uiObjList.push_back(monsterPattern);
 	uiObjList.push_back(monsterDamage);
+	uiObjList.push_back(monsterWeakenText);
 
 
 	// gameClear
@@ -83,7 +84,11 @@ void PlayUi::Init()
 
 
 	// player
-	uiObjList.push_back(energyVFX);
+	uiObjList.push_back(energyLayer5);
+	uiObjList.push_back(energyLayer1);
+	uiObjList.push_back(energyLayer2);
+	uiObjList.push_back(energyLayer3);
+	uiObjList.push_back(energyLayer4);
 	uiObjList.push_back(energyLayer);
 	uiObjList.push_back(playerMaxHpBar);
 	uiObjList.push_back(playerCurHpBar);
@@ -94,6 +99,7 @@ void PlayUi::Init()
 	uiObjList.push_back(ironCladMaxEnergy);
 	uiObjList.push_back(ironCladCurDefend);
 	uiObjList.push_back(ironCladDamage);
+	uiObjList.push_back(playerWeakenText);
 
 	// clear
 	uiObjList.push_back(clearBackground);
@@ -163,6 +169,18 @@ void PlayUi::Reset()
 
 void PlayUi::Update(float dt)
 {
+	if (gameSound == true)
+	{
+		SOUND_MGR->Play("sounds/gamePlaySound.ogg", true);
+		gameSound = false;
+	}
+	if (bossStageSound == true)
+	{
+		SOUND_MGR->StopAll();
+		SOUND_MGR->Play("sounds/Boss.ogg", true);
+		bossStageSound = false;
+	}
+
 	Vector2f worldMousePos = parentScene->ScreenToUiPos((Vector2i)InputMgr::GetMousePos());
 	cursor->SetPos(worldMousePos);
 
@@ -170,14 +188,22 @@ void PlayUi::Update(float dt)
 	HpControl();
 	EnterTheStage(dt);
 
-	energyVFX->SetRotation(energyVFX->GetRotate() + dt * 20);
+	energyLayer1->SetRotation(energyLayer1->GetRotate() + dt * 20);
+	energyLayer2->SetRotation(energyLayer2->GetRotate() - dt * 30);
+	energyLayer3->SetRotation(energyLayer3->GetRotate() + dt * 40);
+	energyLayer4->SetRotation(energyLayer4->GetRotate() - dt * 50);
 
 	if (stage == Stage::Monster)
 		monsterPattern->SetPos({ monster[0]->GetPos().x - 30, monster[0]->GetPos().y - monster[0]->GetSize().y / 2 - 10});
 	else if (stage == Stage::Boss)
+	{
 		monsterPattern->SetPos({ boss->GetPos().x, boss->GetPos().y - boss->GetSize().y / 2 });
+		monsterWeakenText->SetPos({ boss->GetPos().x, boss->GetPos().y - boss->GetSize().y / 2 - 100});
+	}
 
 	monsterPattern->SetOrigin(Origins::MC);
+	playerWeakenText->SetOrigin(Origins::MC);
+	monsterWeakenText->SetOrigin(Origins::MC);
 
 
 	if (stage == Stage::Monster || stage == Stage::Boss)
@@ -201,6 +227,9 @@ void PlayUi::Update(float dt)
 	if (InputMgr::GetKeyDown(Keyboard::Key::T)) // dev
 	{
 		ironClad->AddGold(50000);
+	}
+	if (InputMgr::GetKeyDown(Keyboard::Key::Y)) // dev
+	{
 		ironClad->SetDamage(1000000);
 	}
 
@@ -212,6 +241,7 @@ void PlayUi::Update(float dt)
 			SetDieUi(false);
 		else
 			SetDieUi(true);
+
 		MonsterSet(monster, false);
 		SetActionUi(false);
 		SetClearUi(false);
@@ -235,7 +265,8 @@ void PlayUi::Update(float dt)
 				monster[0]->SetAlive(true);
 				MonsterSet(monster, true);
 				monster[0]->SetIsWeaken(0);
-				ironClad->SetIsWeaken(0);
+				monsterWeakenText->SetText("");
+				
 				SetNextMonsterAction();
 				monster[0]->SetDamage(monster[0]->GetDamage());
 
@@ -266,6 +297,14 @@ void PlayUi::Update(float dt)
 				ironClad->SetAlive(false);
 				SetGameClearUi(true);
 				clearText->SetOrigin(Origins::MC);
+				energyLayer->SetActive(false);
+				energyLayer1->SetActive(false);
+				energyLayer2->SetActive(false);
+				energyLayer3->SetActive(false);
+				energyLayer4->SetActive(false);
+				energyLayer5->SetActive(false);
+				ironCladCurEnergy->SetActive(false);
+				ironCladMaxEnergy->SetActive(false);
 			}
 		}
 	}
@@ -353,7 +392,7 @@ void PlayUi::Update(float dt)
 		bossPlasma3->SetRotation(bossPlasma3->GetRotate() + dt * 40);
 
 		SetMonsterStage(dt);
-		if (isMonsterTern == true)
+		if (isMonsterTern == true || ironClad->GetAlive() == false)
 			SetActionUi(false);
 
 		if (Button::ButtonOnRect(*cursor, *attackButton) && isPlayerTern == true)
@@ -531,8 +570,6 @@ void PlayUi::MonsterAttack(float dt)
 			MonsterAttackDamage(boss->GetDamage());
 		else if (boss->GetIsWeaken() > 0)
 			MonsterAttackDamage(boss->GetDamage() / 2);
-
-		SOUND_MGR->Play("sounds/bossAttack.ogg", false);
 	}
 
 	if (ironClad->GetAlive() == true)
@@ -566,6 +603,7 @@ void PlayUi::PlayerAttack(float dt, Skill skill)
 				PlayerAttackDamage(ironClad->GetDamage() + 5);
 
 			monster[0]->SetIsWeaken(monster[0]->GetIsWeaken() + 2);
+			monsterWeakenText->SetText("Weaken : " + to_string(monster[0]->GetIsWeaken()));
 
 			if (randomMonsterPattern <= 1)
 				monsterDamage->SetText("A : " + to_string((int)monster[0]->GetDamage() / 2));
@@ -595,6 +633,7 @@ void PlayUi::PlayerAttack(float dt, Skill skill)
 				PlayerAttackDamage(ironClad->GetDamage() + 5);
 
 			boss->SetIsWeaken(boss->GetIsWeaken() + 2);
+			monsterWeakenText->SetText("Weaken : " + to_string(boss->GetIsWeaken()));
 
 			if (randomMonsterPattern >= 4 && randomMonsterPattern < 8)
 				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2));
@@ -834,7 +873,7 @@ void PlayUi::SetNextMonsterAction()
 			boss->SetDamage(setDamage);
 			monsterPattern->SetText("NORMAL ATTACK");
 
-			if (monster[0]->GetIsWeaken() == 0)
+			if (boss->GetIsWeaken() == 0)
 				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage()));
 			else
 				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2));
@@ -847,7 +886,7 @@ void PlayUi::SetNextMonsterAction()
 			boss->SetDamage(setDamage);
 			monsterPattern->SetText("SMITE");
 
-			if (monster[0]->GetIsWeaken() == 0)
+			if (boss->GetIsWeaken() == 0)
 				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage()));
 			else
 				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2));
@@ -859,7 +898,7 @@ void PlayUi::SetNextMonsterAction()
 			boss->SetDamage(6);
 			monsterPattern->SetText("NUKE");
 
-			if (monster[0]->GetIsWeaken() == 0)
+			if (boss->GetIsWeaken() == 0)
 				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage()) + " X 6");
 			else
 				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2) + " X 6");
@@ -891,6 +930,7 @@ void PlayUi::MonsterAction(float dt)
 		if (monster[0]->GetPattern() == MonsterPattern::Weaken)
 		{
 			ironClad->SetIsWeaken(ironClad->GetIsWeaken() + 1);
+			playerWeakenText->SetText("Weaken : " + to_string(ironClad->GetIsWeaken()));
 			ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage() / 2));
 			SOUND_MGR->Play("sounds/debuff.ogg", false);
 			ironClad->SetIsWeakenMotion(true);
@@ -908,16 +948,17 @@ void PlayUi::MonsterAction(float dt)
 		if (boss->GetBossPattern() == BossPattern::NormalAttack)
 		{
 			MonsterAttack(dt);
+			SOUND_MGR->Play("sounds/bossAttack.ogg", false);
 		}
 		if (boss->GetBossPattern() == BossPattern::Smite)
 		{
-			//SOUND_MGR->Play("sounds/bossHeaveyAttack.ogg", false);
 			MonsterAttack(dt);
+			SOUND_MGR->Play("sounds/bossHeavyAttack.ogg", false);
 		}
 
 		if (boss->GetBossPattern() == BossPattern::Weaken)
 		{
-			ironClad->SetIsWeaken(ironClad->GetIsWeaken() + 1);
+			playerWeakenText->SetText("Weaken : " + to_string(ironClad->GetIsWeaken()));
 			ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage() / 2));
 			ironClad->SetIsWeakenMotion(true);
 			SOUND_MGR->Play("sounds/debuff.ogg", false);
@@ -932,6 +973,7 @@ void PlayUi::MonsterAction(float dt)
 				MonsterAttack(dt);
 				boss->SetNukeCount(boss->GetNukeCount() - 1);
 				nukeDelay = 0.2f;
+				SOUND_MGR->Play("sounds/bossAttack.ogg", false);
 			}
 		}
 
@@ -950,6 +992,16 @@ void PlayUi::MonsterAction(float dt)
 		{
 			if (boss->GetNukeCount() == 0)
 			{
+				if (ironClad->GetIsWeaken() > 0)
+				{
+					ironClad->SetIsWeaken(ironClad->GetIsWeaken());
+					playerWeakenText->SetText("Weaken : " + to_string(ironClad->GetIsWeaken()));
+				}
+				else if (ironClad->GetIsWeaken() == 0)
+				{
+					playerWeakenText->SetText("");
+				}
+
 				ironClad->SetCurEnergy(ironClad->GetMaxEnergy());
 				ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 
@@ -961,7 +1013,11 @@ void PlayUi::MonsterAction(float dt)
 				if (boss->GetIsWeaken() > 0)
 				{
 					boss->SetIsWeaken(boss->GetIsWeaken() - 1);
+					monsterWeakenText->SetText("Weaken : " + to_string(boss->GetIsWeaken()));
 				}
+				if (boss->GetIsWeaken() == 0)
+					monsterWeakenText->SetText("");
+
 				boss->SetNukeCount(6);
 
 				ironClad->SetDefend(0);
@@ -970,6 +1026,16 @@ void PlayUi::MonsterAction(float dt)
 		}
 		else
 		{
+			if (ironClad->GetIsWeaken() > 0)
+			{
+				ironClad->SetIsWeaken(ironClad->GetIsWeaken());
+				playerWeakenText->SetText("Weaken : " + to_string(ironClad->GetIsWeaken()));
+			}
+			else if (ironClad->GetIsWeaken() == 0)
+			{
+				playerWeakenText->SetText("");
+			}
+
 			ironClad->SetCurEnergy(ironClad->GetMaxEnergy());
 			ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 
@@ -981,7 +1047,11 @@ void PlayUi::MonsterAction(float dt)
 			if (boss->GetIsWeaken() > 0)
 			{
 				boss->SetIsWeaken(boss->GetIsWeaken() - 1);
+				monsterWeakenText->SetText("Weaken : " + to_string(boss->GetIsWeaken()));
 			}
+			if (boss->GetIsWeaken() == 0)
+				monsterWeakenText->SetText("");
+
 			boss->SetNukeCount(6);
 
 			ironClad->SetDefend(0);
@@ -990,6 +1060,16 @@ void PlayUi::MonsterAction(float dt)
 	}
 	else
 	{
+		if (ironClad->GetIsWeaken() > 0)
+		{
+			ironClad->SetIsWeaken(ironClad->GetIsWeaken());
+			playerWeakenText->SetText("Weaken : " + to_string(ironClad->GetIsWeaken()));
+		}
+		else if (ironClad->GetIsWeaken() == 0)
+		{
+			playerWeakenText->SetText("");
+		}
+
 		ironClad->SetCurEnergy(ironClad->GetMaxEnergy());
 		ironCladCurEnergy->SetText(to_string(ironClad->GetCurEnergy()));
 
@@ -999,7 +1079,12 @@ void PlayUi::MonsterAction(float dt)
 		ternPassButton->SetActive(true);
 
 		if (monster[0]->GetIsWeaken() > 0)
+		{
 			monster[0]->SetIsWeaken(monster[0]->GetIsWeaken() - 1);
+			monsterWeakenText->SetText("Weaken : " + to_string(monster[0]->GetIsWeaken()));
+		}
+		if (monster[0]->GetIsWeaken() == 0)
+			monsterWeakenText->SetText("");
 
 		ironClad->SetDefend(0);
 		ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
@@ -1223,6 +1308,13 @@ void PlayUi::UiCreate()
 			monsterCurHpBar->SetPos({ setMonsterUiPos.x + monsterCurHpBar->GetSize().x / 2 - 30, setMonsterUiPos.y + 15 });
 			monsterMaxHpBar->SetPos({ setMonsterUiPos.x + monsterMaxHpBar->GetSize().x / 2 - 30, setMonsterUiPos.y + 15 });
 		}
+
+		// Weaken Text
+		{
+			monsterWeakenText = new TextObj();
+			monsterWeakenText->SetAll(font, "", 30, Color::White, 
+				{monster[0]->GetPos().x - 20, monster[0]->GetPos().y - monster[0]->GetSize().y / 2 - 50});
+		}
 	}
 
 
@@ -1261,11 +1353,11 @@ void PlayUi::UiCreate()
 			ironCladMaxHp->SetAll(font, "/ " + to_string(ironClad->GetMaxHP()), 30, Color::White,
 				{ ironCladCurHp->GetPos().x + 40, setPlayerUiPos.y });
 
-			ironCladCurEnergy->SetAll(font, to_string(ironClad->GetCurEnergy()), 30, Color::Black,
+			ironCladCurEnergy->SetAll(font, to_string(ironClad->GetCurEnergy()), 35, Color::White,
 				{ 100, windowSize.y - 100 });
 			ironCladCurEnergy->SetOrigin(Origins::MC);
 
-			ironCladMaxEnergy->SetAll(font, "    / " + to_string(ironClad->GetMaxEnergy()), 30, Color::Black,
+			ironCladMaxEnergy->SetAll(font, "    / " + to_string(ironClad->GetMaxEnergy()), 35, Color::White,
 				{ ironCladCurEnergy->GetPos().x + 20, ironCladCurEnergy->GetPos().y + 3 });
 			ironCladMaxEnergy->SetOrigin(Origins::MC);
 
@@ -1319,6 +1411,14 @@ void PlayUi::UiCreate()
 
 				playerCurHpBar->SetAll(*CurHpBarImage, { setPlayerUiPos.x - 57, setPlayerUiPos.y + 15 }, Origins::ML);
 				playerMaxHpBar->SetAll(*MaxHpBarImage, { setPlayerUiPos.x - 57, setPlayerUiPos.y + 15 }, Origins::ML);
+			}
+
+			// Weaken Text
+			{
+				playerWeakenText = new TextObj();
+
+				playerWeakenText->SetAll(font, "", 30, Color::White,
+					{ironClad->GetPos().x, ironClad->GetPos().y - ironClad->GetSize().y / 2 - 30});
 			}
 		}
 	}
@@ -1621,11 +1721,19 @@ void PlayUi::UiCreate()
 	// energy
 	{
 		energyLayer = new SpriteObj();
-		energyVFX = new SpriteObj();
+		energyLayer1 = new SpriteObj();
+		energyLayer2 = new SpriteObj();
+		energyLayer3 = new SpriteObj();
+		energyLayer4 = new SpriteObj();
+		energyLayer5 = new SpriteObj();
 
-		energyLayer->SetAll(*RESOURCE_MGR->GetTexture("graphics/energyLayer.png"), ironCladMaxEnergy->GetPos(), Origins::MC);
-		energyVFX->SetAll(*RESOURCE_MGR->GetTexture("graphics/energyRedVFX.png"), energyLayer->GetPos(), Origins::MC);
-		energyVFX->SetScale(0.6f, 0.6f);
+		energyLayer->SetAll(*RESOURCE_MGR->GetTexture("graphics/energyLayer.png"), 
+			{ ironCladMaxEnergy->GetPos().x + 5, ironCladMaxEnergy->GetPos().y + 5 }, Origins::MC);
+		energyLayer1->SetAll(*RESOURCE_MGR->GetTexture("graphics/energyLayer1.png"), energyLayer->GetPos(), Origins::MC);
+		energyLayer2->SetAll(*RESOURCE_MGR->GetTexture("graphics/energyLayer2.png"), energyLayer->GetPos(), Origins::MC);
+		energyLayer3->SetAll(*RESOURCE_MGR->GetTexture("graphics/energyLayer3.png"), energyLayer->GetPos(), Origins::MC);
+		energyLayer4->SetAll(*RESOURCE_MGR->GetTexture("graphics/energyLayer4.png"), energyLayer->GetPos(), Origins::MC);
+		energyLayer5->SetAll(*RESOURCE_MGR->GetTexture("graphics/energyLayer5.png"), energyLayer->GetPos(), Origins::MC);
 	}
 }
 
@@ -1789,7 +1897,7 @@ void PlayUi::SetMonsterStage(float dt)
 
 	// Monster Tern Control
 	if (monsterPatternDelay <= 0.f && isPlayerTern == false)
-		MonsterAction(dt); ////////////////////////////////////////////////
+		MonsterAction(dt);
 
 	// Monster Pattern Set
 	if (isMonsterTern == true && monsterRandomPatternSetting == true)
@@ -1801,8 +1909,8 @@ void PlayUi::SetMonsterStage(float dt)
 		PlayerTern(dt);
 	}
 
-	this->attackCount->SetText("COUNT : " + to_string(ironClad->GetAttackCount()));
-	this->defendCount->SetText("COUNT : " + to_string(ironClad->GetDefendCount()));
+	this->attackCount->SetText("AC : " + to_string(ironClad->GetAttackCount()));
+	this->defendCount->SetText("DC : " + to_string(ironClad->GetDefendCount()));
 	this->attackCount->SetOrigin(Origins::MC);
 	this->defendCount->SetOrigin(Origins::MC);
 
@@ -1817,6 +1925,14 @@ void PlayUi::SetMonsterStage(float dt)
 				ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
 				curHp->SetText(to_string(ironClad->GetCurHP()));
 				playerActionCountSet = true;
+				ironClad->SetIsWeaken(0);
+				ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage()));
+				playerWeakenText->SetText("");
+				SOUND_MGR->Play("sounds/heal.ogg", false);
+
+				ironClad->AddGold(40);
+				gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
+				SOUND_MGR->Play("sounds/gold.ogg", false);
 			}
 			SetClearUi(true);
 			monsterKillCount++;
@@ -1826,13 +1942,7 @@ void PlayUi::SetMonsterStage(float dt)
 	{
 		if (bossCount == 0)
 		{
-			if (ironClad->GetType() == PlayerType::IronClad)
-			{
-				ironClad->SetCurHP(ironClad->GetMaxHP());
-				ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
-				curHp->SetText(to_string(ironClad->GetCurHP()));
-				playerActionCountSet = true;
-			}
+			playerWeakenText->SetText("");
 			SetClearUi(true);
 			monsterKillCount++;
 		}
@@ -1951,6 +2061,7 @@ void PlayUi::EnterTheStage(float dt)
 		if (choiceDelay <= 0.f && bossMapOrder == choiceOrder && mapChoice == true)
 		{
 			stage = Stage::Boss;
+			bossStageSound = true;
 			mapUi = false;
 			mapChoice = false;
 		}
@@ -2169,6 +2280,7 @@ void PlayUi::RewordStage()
 	{
 		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 		{
+			SOUND_MGR->Play("sounds/chestOpen.ogg", false);
 			chest->SetTexture(*RESOURCE_MGR->GetTexture("graphics/largeChestOpened.png"));
 			SetRewordUi(true);
 			rewordUi = true;
@@ -2245,6 +2357,7 @@ void PlayUi::RewordStage()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				SOUND_MGR->Play("sounds/gold.ogg", false);
 				ironClad->SetGold(ironClad->GetCurGold() + getGold);
 				gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
 				addGold->SetActive(false);
@@ -2254,6 +2367,7 @@ void PlayUi::RewordStage()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				SOUND_MGR->Play("sounds/upgradeDamage.ogg", false);
 				ironClad->AddDamage(getDamage);
 				ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage()));
 				addDamage->SetActive(false);
@@ -2263,6 +2377,7 @@ void PlayUi::RewordStage()
 		{
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
+				SOUND_MGR->Play("sounds/defence.ogg", false);
 				ironClad->SetAddDefend(ironClad->GetAddDefend() + getDefend);
 				addDefend->SetActive(false);
 			}
@@ -2290,6 +2405,7 @@ void PlayUi::RewordStage()
 				}
 
 				addHp->SetActive(false);
+				SOUND_MGR->Play("sounds/heal.ogg", false);
 			}
 		}
 	}
@@ -2507,8 +2623,12 @@ void PlayUi::ResetPlayUi()
 	giveupUi = false;
 	choiceOrder = 0;
 	smiteOn = false;
+	rewordUi = false;
+	randomReword = true;
 	clubbingOn = false;
 	isChestOpen = false;
+	gameSound = true;
+	bossStageSound = false;
 	stage = Stage::Start;
 	bossCount = 1;
 	SOUND_MGR->StopAll();
@@ -2701,6 +2821,8 @@ void PlayUi::AttackButtonControl(int monsterCount, float dt)
 
 				ironClad->SetDefendCount(defCount -= 1);
 			}
+
+			SOUND_MGR->Play("sounds/playerDefense.ogg", false);
 		}
 	}
 }
