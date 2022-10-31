@@ -76,6 +76,12 @@ void PlayUi::Init()
 	uiObjList.push_back(monsterPattern);
 	uiObjList.push_back(monsterDamage);
 
+
+	// gameClear
+	uiObjList.push_back(gameClearBackground);
+	uiObjList.push_back(clearText);
+
+
 	// player
 	uiObjList.push_back(playerMaxHpBar);
 	uiObjList.push_back(playerCurHpBar);
@@ -164,17 +170,39 @@ void PlayUi::Update(float dt)
 
 	monsterPattern->SetOrigin(Origins::MC);
 
-	if (ironClad->GetAlive() == true)
-		SetDieUi(false);
-	else
-		SetDieUi(true);
 
+	if (stage == Stage::Monster || stage == Stage::Boss)
+	{
+		if (stage == Stage::Monster)
+		{
+			if (ironClad->GetAlive() == true)
+				SetDieUi(false);
+			else
+				SetDieUi(true);
+		}
+		else
+		{
+			if (ironClad->GetAlive() == true)
+			{
+				SetDieUi(false);
+			}
+		}
+	}
 
-	if (InputMgr::GetKeyDown(Keyboard::Key::T))
+	if (InputMgr::GetKeyDown(Keyboard::Key::T)) // dev
+	{
 		ironClad->AddGold(50000);
+		ironClad->SetDamage(1000000);
+	}
 
 	if (stage == Stage::Start)
 	{
+		ironClad->SetTexture(*RESOURCE_MGR->GetTexture("graphics/ironcladimage.png"));
+		SetGameClearUi(false);
+		if (ironClad->GetAlive() == true)
+			SetDieUi(false);
+		else
+			SetDieUi(true);
 		MonsterSet(monster, false);
 		SetActionUi(false);
 		SetClearUi(false);
@@ -197,7 +225,8 @@ void PlayUi::Update(float dt)
 				monster[0]->SetMonster(randomMonsterHp, randomMonsterHp, 0, 0, randomMonsterLevel);
 				monster[0]->SetAlive(true);
 				MonsterSet(monster, true);
-
+				monster[0]->SetIsWeaken(0);
+				ironClad->SetIsWeaken(0);
 				SetNextMonsterAction();
 				monster[0]->SetDamage(monster[0]->GetDamage());
 
@@ -212,12 +241,23 @@ void PlayUi::Update(float dt)
 			}
 
 			SetClearUi(false);
-			ironClad->SetDefend(0);
-			ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
-			randomReword = true;
-			stage = Stage::Map;
-			choiceOrder++;
 			SOUND_MGR->Play("sounds/uiClick.wav", false);
+			
+			if (stage != Stage::Boss)
+			{
+				ironClad->SetDefend(0);
+				ironCladCurDefend->SetText("D : " + to_string(ironClad->GetDefend()));
+				randomReword = true;
+				stage = Stage::Map;
+				choiceOrder++;
+			}
+			else
+			{
+				stage = Stage::None;
+				ironClad->SetAlive(false);
+				SetGameClearUi(true);
+				clearText->SetOrigin(Origins::MC);
+			}
 		}
 	}
 
@@ -299,9 +339,9 @@ void PlayUi::Update(float dt)
 		bossPlasma3->SetActive(true);
 		bossShadow->SetActive(true);
 
-		bossPlasma1->SetRotation(bossPlasma1->GetRotate() + dt * 30);
-		bossPlasma2->SetRotation(bossPlasma2->GetRotate() - dt * 40);
-		bossPlasma3->SetRotation(bossPlasma3->GetRotate() + dt * 50);
+		bossPlasma1->SetRotation(bossPlasma1->GetRotate() + dt * 20);
+		bossPlasma2->SetRotation(bossPlasma2->GetRotate() - dt * 30);
+		bossPlasma3->SetRotation(bossPlasma3->GetRotate() + dt * 40);
 
 		SetMonsterStage(dt);
 		if (isMonsterTern == true)
@@ -325,10 +365,19 @@ void PlayUi::Update(float dt)
 			}
 		}
 
+		if (bossCount > 0)
+			SetGameClearUi(false);
+
+		if (boss->GetCurHp() <= 0)
+			bossCount--;
+
 		if (isAttackSkill == true)
 			SetAttackSkillUi(true);
 		else
 			SetAttackSkillUi(false);
+
+		if (ironClad->GetAlive() == false)
+			SetDieUi(true);
 	}
 	else
 	{
@@ -352,8 +401,6 @@ void PlayUi::Update(float dt)
 		{
 			if (bossCount > 0)
 				SetClearUi(false);
-			else
-				SetClearUi(true);
 		}
 	}
 	else
@@ -380,6 +427,15 @@ void PlayUi::Update(float dt)
 		getSmite->SetActive(false);
 	if (clubbingOn == true)
 		getClubbing->SetActive(false);
+
+	if (Button::ButtonOnRect(*cursor, *mainMenuButton))
+	{
+		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && mainMenuButton->GetActive() == true)
+		{
+			ResetPlayUi();
+			UiDev1::SetStartSound(true);
+		}
+	}
 
 	UiMgr::Update(dt);
 }
@@ -449,12 +505,20 @@ void PlayUi::MonsterAttack(float dt)
 		else if (boss->GetIsWeaken() > 0)
 			MonsterAttackDamage(boss->GetDamage() / 2);
 	}
+
+	if (ironClad->GetAlive() == true)
+	{
+		SceneDev2_Play::SetIsMonsterAttack(true);
+		SceneDev2_Play::SetMonsterAttackDelay(0.f);
+	}
 }
 
 void PlayUi::PlayerAttack(float dt, Skill skill)
 {
 	ironClad->SetIsAttack(true);
 	ironClad->Attack(dt);
+	SceneDev2_Play::SetIsAttack(true);
+	SceneDev2_Play::SetAttackDelay(0.05f);
 
 	if (stage == Stage::Monster)
 	{
@@ -503,7 +567,7 @@ void PlayUi::PlayerAttack(float dt, Skill skill)
 
 			boss->SetIsWeaken(boss->GetIsWeaken() + 2);
 
-			if (randomMonsterPattern <= 1)
+			if (randomMonsterPattern >= 4)
 				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2));
 		}
 		else if (skill == Skill::clubbing)
@@ -541,7 +605,6 @@ void PlayUi::MonsterSet(vector<Monster*> monster, bool set)
 					monster[i]->SetAlive(set);
 					monster[i]->SetActive(set);
 
-					// vector �� �����
 					monsterCurHp->SetActive(set);
 					monsterMaxHp->SetActive(set);
 					monsterDamage->SetActive(set);
@@ -581,6 +644,10 @@ void PlayUi::MonsterSet(vector<Monster*> monster, bool set)
 			{
 				boss->SetAlive(false);
 				boss->SetActive(false);
+				bossPlasma1->SetActive(false);
+				bossPlasma2->SetActive(false);
+				bossPlasma3->SetActive(false);
+				bossShadow->SetActive(false);
 				monsterCurHp->SetActive(false);
 				monsterMaxHp->SetActive(false);
 				monsterDamage->SetActive(false);
@@ -718,7 +785,19 @@ void PlayUi::SetNextMonsterAction()
 	{
 		randomMonsterPattern = Utils::RandomRange(0, 9);
 
-		if (randomMonsterPattern <= 2)
+		if (randomMonsterPattern <= 1)
+		{
+			monsterPattern->SetText("DEFENCE");
+			monsterDamage->SetText("");
+			monsterDamage->SetActive(false);
+		}
+		else if (randomMonsterPattern == 2 || randomMonsterPattern == 3)
+		{
+			monsterPattern->SetText("Status Ailment");
+			monsterDamage->SetText("");
+			monsterDamage->SetActive(false);
+		}
+		else if (randomMonsterPattern == 4 || randomMonsterPattern == 5 || randomMonsterPattern == 6)
 		{
 			int setDamage = Utils::RandomRange(6, 12);
 			boss->SetDamage(setDamage);
@@ -730,18 +809,6 @@ void PlayUi::SetNextMonsterAction()
 				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2));
 
 			monsterDamage->SetActive(true);
-		}
-		else if (randomMonsterPattern == 3 || randomMonsterPattern == 4)
-		{
-			monsterPattern->SetText("DEFENCE");
-			monsterDamage->SetText("");
-			monsterDamage->SetActive(false);
-		}
-		else if (randomMonsterPattern == 5 || randomMonsterPattern == 6)
-		{
-			monsterPattern->SetText("Status Ailment");
-			monsterDamage->SetText("");
-			monsterDamage->SetActive(false);
 		}
 		else if (randomMonsterPattern == 7)
 		{
@@ -791,6 +858,7 @@ void PlayUi::MonsterAction(float dt)
 		{
 			ironClad->SetIsWeaken(ironClad->GetIsWeaken() + 1);
 			ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage() / 2));
+			ironClad->SetIsWeakenMotion(true);
 		}
 
 		monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
@@ -809,6 +877,7 @@ void PlayUi::MonsterAction(float dt)
 		{
 			ironClad->SetIsWeaken(ironClad->GetIsWeaken() + 1);
 			ironCladDamage->SetText("A : " + to_string((int)ironClad->GetDamage() / 2));
+			ironClad->SetIsWeakenMotion(true);
 		}
 
 		if (boss->GetBossPattern() == BossPattern::Nuke)
@@ -1284,15 +1353,26 @@ void PlayUi::UiCreate()
 		continueButton->SetPos({ windowSize.x - continueButton->GetSize().x, windowSize.y - continueButton->GetSize().y });
 	}
 
+	//ending
+	{
+		gameClearBackground = new SpriteObj();
+		clearText = new TextObj();
+
+
+		gameClearBackground->SetAll(*RESOURCE_MGR->GetTexture("graphics/ending.png"), windowSize * 0.5f, Origins::MC);
+		clearText->SetAll(font, "CLEAR ?", 200, Color::White, { 0, 0 });
+		clearText->SetPos({windowSize.x * 0.5f, clearText->GetSize().top + 200});
+	}
+
 	// choice
 	{
 		choice1 = new SpriteObj();
 		choice2 = new SpriteObj();
 		choice3 = new SpriteObj();
 
-		choice1->SetAll(*RESOURCE_MGR->GetTexture("graphics/choice1.png"), {0, 0}, Origins::MC);
-		choice2->SetAll(*RESOURCE_MGR->GetTexture("graphics/choice2.png"), {0, 0}, Origins::MC);
-		choice3->SetAll(*RESOURCE_MGR->GetTexture("graphics/choice3.png"), {0, 0}, Origins::MC);
+		choice1->SetAll(*RESOURCE_MGR->GetTexture("graphics/choice1.png"), {-200, -200 }, Origins::MC);
+		choice2->SetAll(*RESOURCE_MGR->GetTexture("graphics/choice2.png"), { -200, -200 }, Origins::MC);
+		choice3->SetAll(*RESOURCE_MGR->GetTexture("graphics/choice3.png"), { -200, -200 }, Origins::MC);
 	}
 
 
@@ -1605,7 +1685,7 @@ void PlayUi::SetMonsterStage(float dt)
 	{
 		if (Button::ButtonOnRect(*cursor, *ternPassButton) && 
 		isPlayerTern == true && 
-		boss->GetAlive() == true &&
+		bossCount > 0 &&
 		dieOrGiveup->GetActive() == false)
 		{
 			isHover = true;
@@ -1671,7 +1751,7 @@ void PlayUi::SetMonsterStage(float dt)
 	}
 	else if (stage == Stage::Boss)
 	{
-		if (boss->GetActive() == false)
+		if (bossCount == 0)
 		{
 			if (ironClad->GetType() == PlayerType::IronClad)
 			{
@@ -1816,7 +1896,7 @@ void PlayUi::QuestionStage()
 
 		SetNextMonsterAction();
 		monster[0]->SetDamage(monster[0]->GetDamage());
-
+		monster[0]->SetIsWeaken(0);
 		monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
 		monsterMaxHp->SetText("/ " + to_string(monster[0]->GetMaxHp()));
 		monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
@@ -1835,7 +1915,7 @@ void PlayUi::QuestionStage()
 
 		SetNextMonsterAction();
 		monster[0]->SetDamage(monster[0]->GetDamage());
-
+		monster[0]->SetIsWeaken(0);
 		monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
 		monsterMaxHp->SetText("/ " + to_string(monster[0]->GetMaxHp()));
 		monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
@@ -2111,8 +2191,8 @@ void PlayUi::RewordStage()
 				if (hp + getHp <= ironClad->GetMaxHP())
 				{
 					ironClad->SetCurHP(hp += getHp);
-					ironCladCurHp->SetText(to_string(ironClad->GetMaxHP()));
-					curHp->SetText(to_string(ironClad->GetMaxHP()));
+					ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
+					curHp->SetText(to_string(ironClad->GetCurHP()));
 				}
 				else if (hp + getHp > ironClad->GetMaxHP())
 				{
@@ -2120,8 +2200,8 @@ void PlayUi::RewordStage()
 					int excessHpCalculation = (hp + getHp) - maxh;
 
 					ironClad->SetCurHP(hp += getHp - excessHpCalculation);
-					ironCladCurHp->SetText(to_string(ironClad->GetMaxHP()));
-					curHp->SetText(to_string(ironClad->GetMaxHP()));
+					ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
+					curHp->SetText(to_string(ironClad->GetCurHP()));
 				}
 
 				addHp->SetActive(false);
@@ -2328,6 +2408,7 @@ void PlayUi::ResetPlayUi()
 	ironClad->SetAlive(true);
 	monster[0]->SetAlive(true);
 	SetDieUi(false);
+	SetGameClearUi(false);
 
 	monsterRandomPatternSetting = true;
 	isMonsterTern = true;
@@ -2344,6 +2425,7 @@ void PlayUi::ResetPlayUi()
 	clubbingOn = false;
 	isChestOpen = false;
 	stage = Stage::Start;
+	bossCount = 1;
 	SOUND_MGR->StopAll();
 }
 
@@ -2530,4 +2612,19 @@ void PlayUi::AttackButtonControl(int monsterCount, float dt)
 			}
 		}
 	}
+}
+
+void PlayUi::SetGameClearUi(bool set)
+{
+	gameClearBackground->SetActive(set);
+	clearText->SetActive(set);
+
+	floors->SetText("Floors : " + to_string(choiceOrder));
+	monsterKilled->SetText("Monster Killed : " + to_string(monsterKillCount));
+	floors->SetOrigin(Origins::MC);
+	monsterKilled->SetOrigin(Origins::MC);
+
+	floors->SetActive(set);
+	monsterKilled->SetActive(set);
+	mainMenuButton->SetActive(set);
 }

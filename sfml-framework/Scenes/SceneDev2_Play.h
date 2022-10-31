@@ -1,13 +1,15 @@
 #pragma once
 #include "Scene.h"
 
-//class Player;
-//class Monster;
 class SceneDev2_Play : public Scene
 {
 protected:
-	//Player* ironClad;
-	//Monster* monster;
+	bool viewShakeRight = true;
+	bool viewShakeLeft = false;
+
+	bool viewShakeTop = true;
+	bool viewShakeLow = false;
+
 
 public:
 	SceneDev2_Play();
@@ -21,5 +23,21 @@ public:
 
 	virtual void Update(float dt) override;
 	virtual void Draw(RenderWindow& window) override;
+
+	void ViewShakePlayerAttack(float dt);
+	void ViewShakeMonsterAttack(float dt);
+
+	static float attackDelay;
+	static void SetAttackDelay(float set) { attackDelay = set; };
+
+	static bool isAttack;
+	static void SetIsAttack(bool set) { isAttack = set; };
+
+
+	static float monsterAttackDelay;
+	static void SetMonsterAttackDelay(float set) { monsterAttackDelay = set; };
+
+	static bool monsterIsAttack;
+	static void SetIsMonsterAttack(bool set) { monsterIsAttack = set; };
 };
 

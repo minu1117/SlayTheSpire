@@ -47,8 +47,50 @@ void Player::SetIsAttack(bool set)
 	isAttack = set;
 }
 
+void Player::PlayerWeakenMotion(float dt)
+{
+	if (weakenMotion == false)
+		return;
+
+	Vector2i size = FRAMEWORK->GetWindowSize();
+
+	if (weakenMotion == true)
+	{
+		if (weakenRightMove == true)
+		{
+			SetPos({ GetPos().x + speed/1.5f * dt , GetPos().y });
+			if (GetPos().x > (float)size.x / 3.7)
+			{
+				weakenRightMove = false;
+				weakenLeftMove = true;
+			}
+		}
+		if (weakenLeftMove == true)
+		{
+			SetPos({ GetPos().x + -speed/1.5f * dt , GetPos().y });
+
+			if (GetPos().x < (float)size.x / 4 && weakenMotionCount == 0)
+			{
+				weakenRightMove = true;
+				weakenLeftMove = false;
+				weakenMotion = false;
+				weakenMotionCount = 3;
+			}
+
+			if (GetPos().x < (float)size.x / 4.2)
+			{
+				weakenRightMove = true;
+				weakenLeftMove = false;
+				weakenMotionCount--;
+			}
+		}
+	}
+
+}
+
 void Player::Update(float dt)
 {
+	PlayerWeakenMotion(dt);
 	Attack(dt);
 	SpriteObj::Update(dt);
 }

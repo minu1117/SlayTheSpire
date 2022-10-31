@@ -33,8 +33,6 @@ void Monster::Pattern(int pattern, float dt)
 		patternType = MonsterPattern::Defence;
 		break;
 	case 3:
-		SetIsAttack(true);
-		Attack(dt);
 		patternType = MonsterPattern::Weaken;
 		break;
 	}

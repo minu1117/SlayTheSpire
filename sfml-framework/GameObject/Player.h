@@ -47,6 +47,10 @@ protected:
 	bool leftMove = false;
 
 	int isWeaken = 0;
+	bool weakenMotion = false;
+	bool weakenRightMove = true;
+	bool weakenLeftMove = false;
+	int weakenMotionCount = 3;
 
 	PlayerType type;
 
@@ -111,6 +115,9 @@ public:
 
 	void SetNotWeakenDefend(float w) { notWeakenAddDefend = w; };
 	float GetNotWeakenDefend() const { return notWeakenAddDefend; };
+
+	void SetIsWeakenMotion(bool set) { weakenMotion = set; };
+	void PlayerWeakenMotion(float dt);
 
 	virtual void Update(float dt) override;
 };

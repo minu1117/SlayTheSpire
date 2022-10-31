@@ -7,6 +7,7 @@
 
 enum class Stage
 {
+	None = -1,
 	Start,
 	Monster,
 	Map,
@@ -134,6 +135,11 @@ protected:
 
 	SpriteObj* gameOffButton;
 
+	// BossClear
+	SpriteObj* gameClearBackground;
+	TextObj* clearText;
+
+
 	// shop
 	SpriteObj* damageUp;
 	SpriteObj* defenseUp;
@@ -174,6 +180,8 @@ protected:
 	SpriteObj* bossPlasma2;
 	SpriteObj* bossPlasma3;
 	SpriteObj* bossShadow;
+
+	float dieDelay;
 
 public:
 	PlayUi(Scene* scene);
@@ -254,5 +262,6 @@ public:
 
 	void AttackButtonControl(int monsterCount, float dt);
 
+	void SetGameClearUi(bool set);
 };
 

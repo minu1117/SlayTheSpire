@@ -18,18 +18,18 @@ void BossMonster::BossPattenSet(int pattern, Player* player)
 
 	switch (pattern)
 	{
-	case 0: case 1: case 2:
-		bossPattern = BossPattern::NormalAttack;
-		break;
-
-	case 3: case 4:
+	case 0: case 1:
 		SetDefend(defend + df);
 		bossPattern = BossPattern::Defense;
 		break;
 
-	case 5: case 6:
+	case 2: case 3:
 		player->SetIsWeaken(player->GetIsWeaken() + 2);
 		bossPattern = BossPattern::Weaken;
+		break;
+
+	case 4: case 5: case 6:
+		bossPattern = BossPattern::NormalAttack;
 		break;
 
 	case 7:
