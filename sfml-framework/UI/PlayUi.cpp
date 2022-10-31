@@ -567,8 +567,10 @@ void PlayUi::PlayerAttack(float dt, Skill skill)
 
 			boss->SetIsWeaken(boss->GetIsWeaken() + 2);
 
-			if (randomMonsterPattern >= 4)
+			if (randomMonsterPattern >= 4 && randomMonsterPattern < 8)
 				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2));
+			else if (randomMonsterPattern == 8)
+				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2) + " X 6");
 		}
 		else if (skill == Skill::clubbing)
 		{
