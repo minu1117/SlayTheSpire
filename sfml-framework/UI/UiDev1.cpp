@@ -252,6 +252,7 @@ void UiDev1::Update(float dt)
 			if (InputMgr::GetMouseButtonUp(Mouse::Button::Left))
 			{
 				StartUi = true;
+				SceneDev1::SetIsCharSelect(true);
 				SOUND_MGR->Play("sounds/ironCladSelect.ogg", false);
 			}
 		}

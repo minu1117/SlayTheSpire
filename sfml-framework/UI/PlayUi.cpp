@@ -188,10 +188,26 @@ void PlayUi::Update(float dt)
 	HpControl();
 	EnterTheStage(dt);
 
-	energyLayer1->SetRotation(energyLayer1->GetRotate() + dt * 20);
-	energyLayer2->SetRotation(energyLayer2->GetRotate() - dt * 30);
-	energyLayer3->SetRotation(energyLayer3->GetRotate() + dt * 40);
-	energyLayer4->SetRotation(energyLayer4->GetRotate() - dt * 50);
+	if (ironClad->GetDefend() > 0)
+		playerCurHpBar->SetFillColor({ 0, 103, 163 });
+	else
+		playerCurHpBar->SetFillColor(Color::Red);
+
+
+	if (monster[0]->GetDefend() > 0 || boss->GetDefend() > 0)
+	{
+		if (monster[0]->GetDefend() > 0)
+			monsterCurHpBar->SetFillColor({ 0, 103, 163 });
+		else
+			monsterCurHpBar->SetFillColor({ 0, 103, 163 });
+	}
+	else
+		monsterCurHpBar->SetFillColor(Color::Red);
+
+	energyLayer1->SetRotation(energyLayer1->GetRotate() - dt * 50);
+	energyLayer2->SetRotation(energyLayer2->GetRotate() + dt * 40);
+	energyLayer3->SetRotation(energyLayer3->GetRotate() - dt * 30);
+	energyLayer4->SetRotation(energyLayer4->GetRotate() + dt * 20);
 
 	if (stage == Stage::Monster)
 		monsterPattern->SetPos({ monster[0]->GetPos().x - 30, monster[0]->GetPos().y - monster[0]->GetSize().y / 2 - 10});
@@ -2161,7 +2177,7 @@ void PlayUi::ShopStage()
 
 			ironClad->SetGold(ironClad->GetCurGold() - 20);
 			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
-			// 돈 사운드
+			SOUND_MGR->Play("sounds/upgradeDamage.ogg", false);
 		}
 	}
 	if (Button::ButtonOnRect(*cursor, *energyUp))
@@ -2181,7 +2197,7 @@ void PlayUi::ShopStage()
 				ironClad->SetGold(ironClad->GetCurGold() - 30);
 				gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
 
-				// 돈 사운드
+				SOUND_MGR->Play("sounds/playerTernStart.ogg", false);
 			}
 		}
 	}
@@ -2193,7 +2209,8 @@ void PlayUi::ShopStage()
 
 			ironClad->SetGold(ironClad->GetCurGold() - 20);
 			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
-			// 돈 사운드
+			
+			SOUND_MGR->Play("sounds/playerDefense.ogg", false);
 		}
 	}
 	if (Button::ButtonOnRect(*cursor, *hpUp))
@@ -2212,7 +2229,8 @@ void PlayUi::ShopStage()
 
 			ironClad->SetGold(ironClad->GetCurGold() - 10);
 			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
-			// 돈 사운드
+			
+			SOUND_MGR->Play("sounds/heal.ogg", false);
 		}
 	}
 
@@ -2239,9 +2257,9 @@ void PlayUi::ShopStage()
 			smiteOn = true;
 			ironClad->SetGold(ironClad->GetCurGold() - 50);
 			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
-			// 돈 사운드
-
 			
+
+			SOUND_MGR->Play("sounds/sold.ogg", false);
 		}
 	}
 	if (Button::ButtonOnRect(*cursor, *getClubbing))
@@ -2267,6 +2285,8 @@ void PlayUi::ShopStage()
 			clubbingOn = true;
 			ironClad->SetGold(ironClad->GetCurGold() - 50);
 			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
+
+			SOUND_MGR->Play("sounds/sold.ogg", false);
 		}
 	}
 }
@@ -2424,24 +2444,24 @@ void PlayUi::StartMapPlayerUpgrade(float dt)
 		switch (randomChoice)
 		{
 		case 0:
-			choice1->SetPos({ 0 + choice1->GetSize().x * 2, windowSize.y - choice1->GetSize().y * 3 });
-			choice2->SetPos({ 0 + choice1->GetSize().x * 2, windowSize.y - choice1->GetSize().y });
+			choice1->SetPos({ 0 + choice1->GetSize().x, windowSize.y - choice1->GetSize().y * 3 });
+			choice2->SetPos({ 0 + choice1->GetSize().x, windowSize.y - choice1->GetSize().y });
 
 			choice1->SetActive(true);
 			choice2->SetActive(true);
 			choice3->SetActive(false);
 			break;
 		case 1:
-			choice1->SetPos({ 0 + choice1->GetSize().x * 2, windowSize.y - choice1->GetSize().y * 3 });
-			choice3->SetPos({ 0 + choice1->GetSize().x * 2, windowSize.y - choice1->GetSize().y });
+			choice1->SetPos({ 0 + choice1->GetSize().x, windowSize.y - choice1->GetSize().y * 3 });
+			choice3->SetPos({ 0 + choice1->GetSize().x, windowSize.y - choice1->GetSize().y });
 
 			choice1->SetActive(true);
 			choice2->SetActive(false);
 			choice3->SetActive(true);
 			break;
 		case 2:
-			choice2->SetPos({ 0 + choice1->GetSize().x * 2, windowSize.y - choice1->GetSize().y * 3 });
-			choice3->SetPos({ 0 + choice1->GetSize().x * 2, windowSize.y - choice1->GetSize().y });
+			choice2->SetPos({ 0 + choice1->GetSize().x, windowSize.y - choice1->GetSize().y * 3 });
+			choice3->SetPos({ 0 + choice1->GetSize().x, windowSize.y - choice1->GetSize().y });
 
 			choice1->SetActive(false);
 			choice2->SetActive(true);
@@ -2460,8 +2480,8 @@ void PlayUi::StartMapPlayerUpgrade(float dt)
 			{
 				int hp = ironClad->GetCurHP();
 				int maxhp = ironClad->GetMaxHP();
-				ironClad->SetCurHP(hp += 5);
-				ironClad->SetMaxHP(maxhp += 5);
+				ironClad->SetCurHP(hp += 15);
+				ironClad->SetMaxHP(maxhp += 15);
 
 				ironCladCurHp->SetText(to_string(ironClad->GetMaxHP()));
 				ironCladMaxHp->SetText("/ " + to_string(ironClad->GetMaxHP()));
@@ -2473,6 +2493,8 @@ void PlayUi::StartMapPlayerUpgrade(float dt)
 				choice3->SetActive(false);
 
 				choiceDelay = 1.f;
+
+				SOUND_MGR->Play("sounds/heal.ogg", false);
 			}
 		}
 		if (Button::ButtonOnRect(*cursor, *choice2))
@@ -2504,6 +2526,11 @@ void PlayUi::StartMapPlayerUpgrade(float dt)
 				choice3->SetActive(false);
 
 				choiceDelay = 1.f;
+
+
+				SOUND_MGR->Play("sounds/heavyAttack.ogg", false);
+				SOUND_MGR->Play("sounds/playerTernStart.ogg", false);
+				SceneDev2_Play::SetIsMonsterAttack(true);
 			}
 		}
 		if (Button::ButtonOnRect(*cursor, *choice3))
@@ -2528,6 +2555,11 @@ void PlayUi::StartMapPlayerUpgrade(float dt)
 				choice3->SetActive(false);
 
 				choiceDelay = 1.f;
+
+
+				SOUND_MGR->Play("sounds/heavyAttack.ogg", false);
+				SOUND_MGR->Play("sounds/upgradeDamage.ogg", false);
+				SceneDev2_Play::SetIsMonsterAttack(true);
 			}
 		}
 

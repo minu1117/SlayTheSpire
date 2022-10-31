@@ -125,7 +125,7 @@ protected:
 	SpriteObj* monsterCurHpBar;
 	SpriteObj* monsterMaxHpBar;
 
-	Stage stage = Stage::Boss;
+	Stage stage = Stage::Start;
 
 	SpriteObj* clearBackground;
 	SpriteObj* continueButton;
