@@ -33,7 +33,6 @@ protected:
 	TextObj* ironCladCurEnergy;
 	TextObj* ironCladMaxEnergy;
 	TextObj* ironCladCurDefend;
-	TextObj* ironCladDamage;
 
 	TextObj* attackCount;
 	TextObj* defendCount;
@@ -203,6 +202,21 @@ protected:
 	// Weaken Text
 	TextObj* playerWeakenText;
 	TextObj* monsterWeakenText;
+
+
+	// Attack Skill Info
+	SpriteObj* normalAttackInfo;
+	SpriteObj* smiteInfo;
+	SpriteObj* clubbingInfo;
+
+	// Attack Skill Damage Text
+	TextObj* normalAttackDamageText;
+	TextObj* smiteDamageText;
+	TextObj* clubbingDamageText;
+
+	// Player / Monster Block Image
+	SpriteObj* monsterBlock;
+	SpriteObj* playerBlock;
 
 public:
 	PlayUi(Scene* scene);

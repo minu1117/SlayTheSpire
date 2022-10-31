@@ -78,6 +78,10 @@ graphics/energyLayer2.png,0
 graphics/energyLayer3.png,0
 graphics/energyLayer4.png,0
 graphics/energyLayer5.png,0
+graphics/smiteInfo.png,0
+graphics/normalAttackInfo.png,0
+graphics/clubbingInfo.png,0
+graphics/block.png,0
 sounds/debuff.ogg,2
 sounds/defenseBreak.ogg,2
 sounds/enemyAttack.ogg,2
