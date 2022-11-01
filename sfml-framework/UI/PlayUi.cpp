@@ -34,6 +34,8 @@ void PlayUi::Init()
 	uiObjList.push_back(hpUp);
 	uiObjList.push_back(getSmite);
 	uiObjList.push_back(getClubbing);
+	uiObjList.push_back(getSmiteGold);
+	uiObjList.push_back(getClubbingGold);
 
 
 	uiObjList.push_back(rewordImage);
@@ -254,14 +256,6 @@ void PlayUi::Update(float dt)
 	energyLayer3->SetRotation(energyLayer3->GetRotate() - dt * 30);
 	energyLayer4->SetRotation(energyLayer4->GetRotate() + dt * 20);
 
-	if (stage == Stage::Monster)
-		monsterPattern->SetPos({ monster[0]->GetPos().x - 30, monster[0]->GetPos().y - monster[0]->GetSize().y / 2 - 10});
-	else if (stage == Stage::Boss)
-	{
-		monsterPattern->SetPos({ boss->GetPos().x, boss->GetPos().y - boss->GetSize().y / 2 });
-		monsterWeakenText->SetPos({ boss->GetPos().x, boss->GetPos().y - boss->GetSize().y / 2 - 100});
-	}
-
 	monsterPattern->SetOrigin(Origins::MC);
 	playerWeakenText->SetOrigin(Origins::MC);
 	monsterWeakenText->SetOrigin(Origins::MC);
@@ -439,7 +433,11 @@ void PlayUi::Update(float dt)
 		ShopStage();
 	}
 	else
+	{
 		SetShopMapUi(false);
+		getSmiteGold->SetActive(false);
+		getClubbingGold->SetActive(false);
+	}
 
 
 	if (stage == Stage::Boss)
@@ -502,6 +500,8 @@ void PlayUi::Update(float dt)
 	{
 		if (stage == Stage::Monster)
 		{
+			monsterPattern->SetPos({ monster[0]->GetPos().x - 30, monster[0]->GetPos().y - monster[0]->GetSize().y / 2 - 10 });
+
 			if (monsterCount > 0)
 				SetClearUi(false);
 			else
@@ -515,6 +515,18 @@ void PlayUi::Update(float dt)
 
 		if (stage == Stage::Boss)
 		{
+			Vector2f setMonsterUiPos = { monster[0]->GetPos().x - 30, monster[0]->GetPos().y + (monster[0]->GetSize().y / 2) };
+
+			monsterPattern->SetPos({ boss->GetPos().x, boss->GetPos().y - boss->GetSize().y / 2 });
+			monsterWeakenText->SetPos({ boss->GetPos().x, boss->GetPos().y - boss->GetSize().y / 2 - 100 });
+
+			monsterDefend->SetPos({ setMonsterUiPos.x - 50, setMonsterUiPos.y - 10 });
+			monsterDamage->SetPos({ monsterDefend->GetPos().x, setMonsterUiPos.y + 30 });
+
+			monsterCurHp->SetPos({ setMonsterUiPos.x - 30, setMonsterUiPos.y - 60});
+			monsterMaxHp->SetText(" /  " + to_string(boss->GetMaxHp()));
+			monsterMaxHp->SetPos({ setMonsterUiPos.x + 20, setMonsterUiPos.y - 60});
+
 			monsterAttackImage->SetPos(boss->GetPos());
 			monsterAttackImage->SetScale(3, 5);
 		}
@@ -864,8 +876,9 @@ void PlayUi::PlayerTern(float dt)
 {
 	// player tern
 	int maxEnergy = ironClad->GetMaxEnergy();
+	playerTurnSoundDelay -= dt;
 
-	if (playerActionCountSet == true)
+	if (playerActionCountSet == true && playerTurnSoundDelay <= 0.f)
 	{
 		int count = Utils::RandomRange(0, maxEnergy + 2);
 
@@ -874,7 +887,13 @@ void PlayUi::PlayerTern(float dt)
 		int attCount = ironClad->GetAttackCount();
 		ironClad->SetDefendCount((maxEnergy -= count) + 2);
 
+		SOUND_MGR->Play("sounds/playerTernStart.ogg", false);
 		playerActionCountSet = false;
+	}
+	else if (playerActionCountSet == true && playerTurnSoundDelay >= 0.f)
+	{
+		ironClad->SetAttackCount(0);
+		ironClad->SetDefendCount(0);
 	}
 
 	if (stage == Stage::Monster)
@@ -1104,6 +1123,7 @@ void PlayUi::MonsterAction(float dt)
 
 				ironClad->SetDefend(0);
 				ironCladCurDefend->SetText("");
+				playerTurnSoundDelay = 1.f;
 			}
 		}
 		else
@@ -1138,6 +1158,7 @@ void PlayUi::MonsterAction(float dt)
 
 			ironClad->SetDefend(0);
 			ironCladCurDefend->SetText("");
+			playerTurnSoundDelay = 1.f;
 		}
 	}
 	else
@@ -1170,6 +1191,7 @@ void PlayUi::MonsterAction(float dt)
 
 		ironClad->SetDefend(0);
 		ironCladCurDefend->SetText("");
+		playerTurnSoundDelay = 1.f;
 	}
 }
 
@@ -1348,12 +1370,12 @@ void PlayUi::UiCreate()
 	// Monster
 	{
 		monster.push_back(new Monster(43, 43, 0, 10, MonsterType::Easy));
-		monster[0]->SetAll(*RESOURCE_MGR->GetTexture("graphics/ironcladimage.png"),
+		monster[0]->SetAll(*RESOURCE_MGR->GetTexture("graphics/monsterImage.png"),
 			{ windowSize.x / 1.4f, windowSize.y / 1.7f }, Origins::MC);
-		monster[0]->SetScale(-1, 1);
+		monster[0]->SetScale(1, 1);
 		monsterCount = monster.size();
 
-		Vector2f setMonsterUiPos = { monster[0]->GetPos().x - 30, monster[0]->GetPos().y + (monster[0]->GetSize().y / 2) };
+		Vector2f setMonsterUiPos = { monster[0]->GetPos().x - 30, monster[0]->GetPos().y + (monster[0]->GetSize().y / 3) + 20 };
 
 
 		monsterDefend = new TextObj();
@@ -1749,6 +1771,8 @@ void PlayUi::UiCreate()
 		hpUp = new SpriteObj();
 		getSmite = new SpriteObj();
 		getClubbing = new SpriteObj();
+		getSmiteGold = new TextObj();
+		getClubbingGold = new TextObj();
 
 		damageUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/damageSale.png"), {0, 0}, Origins::MC);
 		defenseUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/defenseSale.png"), {0, 0}, Origins::MC);
@@ -1756,6 +1780,9 @@ void PlayUi::UiCreate()
 		hpUp->SetAll(*RESOURCE_MGR->GetTexture("graphics/hpSale.png"), {0, 0}, Origins::MC);
 		getSmite->SetAll(*RESOURCE_MGR->GetTexture("graphics/smiteAttakButton.png"), {0, 0}, Origins::MC);
 		getClubbing->SetAll(*RESOURCE_MGR->GetTexture("graphics/clubbingSkillButton.png"), {0, 0}, Origins::MC);
+
+		getSmiteGold->SetAll(font, "", 40, Color::White, {0, 0});
+		getClubbingGold->SetAll(font, "", 40, Color::White, { 0, 0 });
 	}
 
 	// reword
@@ -2282,6 +2309,15 @@ void PlayUi::ShopStage()
 	getSmite->SetPos({ windowSize.x / 2 - getSmite->GetSize().x * 1.5f, windowSize.y / 1.5f});
 	getClubbing->SetPos({ windowSize.x / 2 + getClubbing->GetSize().x * 1.5f, windowSize.y / 1.5f });
 
+	getSmiteGold->SetPos({ getSmite->GetPos().x, getSmite->GetPos().y - getSmite->GetSize().y + 10});
+	getSmiteGold->SetOrigin(Origins::MC);
+
+	getClubbingGold->SetPos({ getClubbing->GetPos().x, getClubbing->GetPos().y - getClubbing->GetSize().y + 10 });
+	getClubbingGold->SetOrigin(Origins::MC);
+
+	getSmiteGold->SetText("50 GOLD");
+	getClubbingGold->SetText("50 GOLD");
+
 	if (Button::ButtonOnRect(*cursor, *damageUp))
 	{
 		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 20 && damageUp->GetActive() == true)
@@ -2347,8 +2383,17 @@ void PlayUi::ShopStage()
 		}
 	}
 
+
 	if (Button::ButtonOnRect(*cursor, *getSmite))
 	{
+		smiteInfo->SetPos({ getSmite->GetPos().x, getSmite->GetPos().y + getSmite->GetSize().y });
+	
+		smiteDamageText->SetPos({ smiteInfo->GetPos().x + 5, smiteInfo->GetPos().y });
+		smiteDamageText->SetText(to_string((int)ironClad->GetDamage() + 5));
+
+		smiteInfo->SetActive(true);
+		smiteDamageText->SetActive(true);
+
 		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 50 && smiteOn == false)
 		{
 			normalAttackInfo->SetActive(false);
@@ -2379,6 +2424,7 @@ void PlayUi::ShopStage()
 				clubbingInfo->SetPos({ attackSkillButton2->GetPos().x, attackSkillButton2->GetPos().y - clubbingInfo->GetSize().y });
 			}
 			smiteOn = true;
+			getSmiteGold->SetActive(false);
 			ironClad->SetGold(ironClad->GetCurGold() - 50);
 			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
 			
@@ -2386,8 +2432,24 @@ void PlayUi::ShopStage()
 			SOUND_MGR->Play("sounds/sold.ogg", false);
 		}
 	}
+	else
+	{
+		smiteInfo->SetActive(false);
+		smiteDamageText->SetActive(false);
+
+		smiteInfo->SetPos({ attackSkillButton1->GetPos().x, attackSkillButton1->GetPos().y - smiteInfo->GetSize().y });
+		smiteDamageText->SetPos({ smiteInfo->GetPos().x + 5, smiteInfo->GetPos().y });
+	}
+
 	if (Button::ButtonOnRect(*cursor, *getClubbing))
 	{
+		clubbingInfo->SetPos({ getClubbing->GetPos().x, getClubbing->GetPos().y + getClubbing->GetSize().y });
+		clubbingDamageText->SetPos({ clubbingInfo->GetPos().x + 5, clubbingInfo->GetPos().y + 10 });
+		clubbingDamageText->SetText(to_string((int)ironClad->GetDamage() * 4));
+
+		clubbingInfo->SetActive(true);
+		clubbingDamageText->SetActive(true);
+
 		if (InputMgr::GetMouseButtonUp(Mouse::Button::Left) && ironClad->GetCurGold() >= 50 && clubbingOn == false)
 		{
 			normalAttackInfo->SetActive(false);
@@ -2419,11 +2481,20 @@ void PlayUi::ShopStage()
 				clubbingInfo->SetPos({ attackSkillButton2->GetPos().x, attackSkillButton2->GetPos().y - clubbingInfo->GetSize().y });
 			}
 			clubbingOn = true;
+			getClubbingGold->SetActive(false);
 			ironClad->SetGold(ironClad->GetCurGold() - 50);
 			gold->SetText("GOLD " + to_string(ironClad->GetCurGold()));
 
 			SOUND_MGR->Play("sounds/sold.ogg", false);
 		}
+	}
+	else
+	{
+		clubbingInfo->SetActive(false);
+		clubbingDamageText->SetActive(false);
+
+		clubbingInfo->SetPos({ attackSkillButton2->GetPos().x, attackSkillButton2->GetPos().y - clubbingInfo->GetSize().y });
+		clubbingDamageText->SetPos({ clubbingInfo->GetPos().x + 5, clubbingInfo->GetPos().y });
 	}
 }
 
@@ -2955,6 +3026,7 @@ void PlayUi::AttackButtonControl(int monsterCount, float dt)
 		if (isAttackSkill == true)
 		{
 			smiteInfo->SetActive(true);
+			smiteDamageText->SetActive(true);
 
 			if (ironClad->GetIsWeaken() > 0)
 				smiteDamageText->SetText(to_string((int)ironClad->GetDamage() + 5 / 2));
@@ -3000,6 +3072,7 @@ void PlayUi::AttackButtonControl(int monsterCount, float dt)
 		if (isAttackSkill == true)
 		{
 			clubbingInfo->SetActive(true);
+			clubbingDamageText->SetActive(true);
 
 			if (ironClad->GetIsWeaken() > 0)
 				clubbingDamageText->SetText(to_string((int)ironClad->GetDamage() * 4 / 2));

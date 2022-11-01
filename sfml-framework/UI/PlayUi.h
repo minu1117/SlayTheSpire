@@ -149,6 +149,10 @@ protected:
 	SpriteObj* hpUp;
 	SpriteObj* getSmite;
 	SpriteObj* getClubbing;
+	
+	// Skill Unlock Gold
+	TextObj* getSmiteGold;
+	TextObj* getClubbingGold;
 
 	// reword
 	SpriteObj* chest;
@@ -224,6 +228,7 @@ protected:
 	float attackDelay;
 	float monsterAttackDelay;
 	bool lastEnergyAttack = true;
+	float playerTurnSoundDelay = 1.f;
 
 public:
 	PlayUi(Scene* scene);
