@@ -102,6 +102,10 @@ void PlayUi::Init()
 	uiObjList.push_back(playerWeakenText);
 
 
+	uiObjList.push_back(monsterAttackImage);
+	uiObjList.push_back(playerAttackImage);
+
+
 
 	uiObjList.push_back(monsterBlock);
 	
@@ -200,6 +204,26 @@ void PlayUi::Update(float dt)
 	// Player / Monster HP, HP Bar Control
 	HpControl();
 	EnterTheStage(dt);
+
+	attackDelay -= dt;
+	monsterAttackDelay -= dt;
+	playerAttackImage->SetRotation(playerAttackImage->GetRotate() + dt * 60);
+
+	if (ironClad->GetCurEnergy() == 0 && lastEnergyAttack == true)
+	{
+		attackDelay = 0.1f;
+		lastEnergyAttack = false;
+	}
+
+	if (attackDelay <= 0.f)
+	{
+		monsterAttackImage->SetActive(false);
+		lastEnergyAttack = true;
+	}
+	if (monsterAttackDelay <= 0.f)
+	{
+		playerAttackImage->SetActive(false);
+	}
 
 	if (ironClad->GetDefend() > 0)
 	{
@@ -488,6 +512,12 @@ void PlayUi::Update(float dt)
 			if (bossCount > 0)
 				SetClearUi(false);
 		}
+
+		if (stage == Stage::Boss)
+		{
+			monsterAttackImage->SetPos(boss->GetPos());
+			monsterAttackImage->SetScale(3, 5);
+		}
 	}
 	else
 	{
@@ -496,6 +526,8 @@ void PlayUi::Update(float dt)
 		clearBackground->SetActive(false);
 		ternPassButtonHover->SetActive(false);
 		isAttackSkill = false;
+		monsterAttackImage->SetActive(false);
+		playerAttackImage->SetActive(false);
 	}
 
 	// Option Ui Control
@@ -598,16 +630,32 @@ void PlayUi::MonsterAttack(float dt)
 	if (stage == Stage::Monster)
 	{
 		if (monster[0]->GetIsWeaken() == 0)
+		{
 			MonsterAttackDamage(monster[0]->GetDamage());
+			playerAttackImage->SetActive(true);
+			monsterAttackDelay = 0.1f;
+		}
 		else if (monster[0]->GetIsWeaken() > 0)
+		{
 			MonsterAttackDamage(monster[0]->GetDamage() / 2);
+			playerAttackImage->SetActive(true);
+			monsterAttackDelay = 0.1f;
+		}
 	}
 	else if (stage == Stage::Boss)
 	{
 		if (boss->GetIsWeaken() == 0)
+		{
 			MonsterAttackDamage(boss->GetDamage());
+			playerAttackImage->SetActive(true);
+			monsterAttackDelay = 0.1f;
+		}
 		else if (boss->GetIsWeaken() > 0)
+		{
 			MonsterAttackDamage(boss->GetDamage() / 2);
+			playerAttackImage->SetActive(true);
+			monsterAttackDelay = 0.1f;
+		}
 	}
 
 	if (ironClad->GetAlive() == true)
@@ -1802,6 +1850,22 @@ void PlayUi::UiCreate()
 		playerBlock->SetAll(*RESOURCE_MGR->GetTexture("graphics/block.png"), 
 			{playerMaxHpBar->GetPos().x - playerMaxHpBar->GetSize().x / 4 + 35, playerMaxHpBar->GetPos().y}, Origins::MC);
 	}
+
+
+	{
+		monsterAttackImage = new SpriteObj();
+		playerAttackImage = new SpriteObj();
+
+
+		monsterAttackImage->SetAll(*RESOURCE_MGR->GetTexture("graphics/slash_1.png"), 
+			{ monster[0]->GetPos().x - 20, monster[0]->GetPos().y }, Origins::MC);
+		monsterAttackImage->SetFillColor({80, 188, 223});
+		monsterAttackImage->SetRotation(100);
+		monsterAttackImage->SetScale(2, 4);
+
+		playerAttackImage->SetAll(*RESOURCE_MGR->GetTexture("graphics/monsterAttack.png"), 
+			{ ironClad->GetPos().x + 30, ironClad->GetPos().y - 10 }, Origins::MC);
+	}
 }
 
 void PlayUi::SetActionUi(bool set)
@@ -2762,6 +2826,7 @@ void PlayUi::PlayerAttackDamage(int damage)
 				monsterDefend->SetText("D : " + to_string(monster[0]->GetDefend()));
 				monster[0]->SetCurHp(monster[0]->GetCurHp() - piercingDamage);
 				monsterCurHp->SetText(to_string(monster[0]->GetCurHp()));
+				SOUND_MGR->Play("sounds/defenseBreak.ogg", false);
 			}
 		}
 		else
@@ -2787,6 +2852,7 @@ void PlayUi::PlayerAttackDamage(int damage)
 				monsterDefend->SetText("D : " + to_string(boss->GetDefend()));
 				boss->SetCurHp(boss->GetCurHp() - piercingDamage);
 				monsterCurHp->SetText(to_string(boss->GetCurHp()));
+				SOUND_MGR->Play("sounds/defenseBreak.ogg", false);
 			}
 		}
 		else
@@ -2815,6 +2881,7 @@ void PlayUi::MonsterAttackDamage(int damage)
 			ironClad->SetCurHP(ironClad->GetCurHP() - piercingDamage);
 			ironCladCurHp->SetText(to_string(ironClad->GetCurHP()));
 			curHp->SetText(to_string(ironClad->GetCurHP()));
+			SOUND_MGR->Play("sounds/defenseBreak.ogg", false);
 		}
 	}
 	else
@@ -2868,6 +2935,8 @@ void PlayUi::AttackButtonControl(int monsterCount, float dt)
 			ironClad->SetAttackCount(attCount -= 1);
 
 			SOUND_MGR->Play("sounds/attack.ogg", false);
+			monsterAttackImage->SetActive(true);
+			attackDelay = 0.1f;
 		}
 	}
 	else
@@ -2888,9 +2957,9 @@ void PlayUi::AttackButtonControl(int monsterCount, float dt)
 			smiteInfo->SetActive(true);
 
 			if (ironClad->GetIsWeaken() > 0)
-				smiteDamageText->SetText(to_string((int)ironClad->GetDamage() / 2));
+				smiteDamageText->SetText(to_string((int)ironClad->GetDamage() + 5 / 2));
 			else
-				smiteDamageText->SetText(to_string((int)ironClad->GetDamage()));
+				smiteDamageText->SetText(to_string((int)ironClad->GetDamage() + 5));
 
 			smiteDamageText->SetPos({ smiteInfo->GetPos().x + 15, smiteInfo->GetPos().y });
 		}
@@ -2911,6 +2980,8 @@ void PlayUi::AttackButtonControl(int monsterCount, float dt)
 			ironClad->SetAttackCount(attCount -= 2);
 
 			SOUND_MGR->Play("sounds/playerHeavyAttack.ogg", false);
+			monsterAttackImage->SetActive(true);
+			attackDelay = 0.1f;
 		}
 	}
 	else
@@ -2955,6 +3026,8 @@ void PlayUi::AttackButtonControl(int monsterCount, float dt)
 			ironClad->SetAttackCount(attCount -= 3);
 
 			SOUND_MGR->Play("sounds/heavyAttack.ogg", false);
+			monsterAttackImage->SetActive(true);
+			attackDelay = 0.1f;
 		}
 	}
 	else
@@ -2998,6 +3071,16 @@ void PlayUi::AttackButtonControl(int monsterCount, float dt)
 
 			SOUND_MGR->Play("sounds/playerDefense.ogg", false);
 		}
+	}
+
+	if (energy == 0)
+	{
+		normalAttackInfo->SetActive(false);
+		normalAttackDamageText->SetText("");
+		smiteInfo->SetActive(false);
+		smiteDamageText->SetText("");
+		clubbingInfo->SetActive(false);
+		clubbingDamageText->SetText("");
 	}
 }
 

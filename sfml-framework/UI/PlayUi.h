@@ -218,6 +218,13 @@ protected:
 	SpriteObj* monsterBlock;
 	SpriteObj* playerBlock;
 
+	// attack ui
+	SpriteObj* monsterAttackImage;
+	SpriteObj* playerAttackImage;
+	float attackDelay;
+	float monsterAttackDelay;
+	bool lastEnergyAttack = true;
+
 public:
 	PlayUi(Scene* scene);
 	~PlayUi();
