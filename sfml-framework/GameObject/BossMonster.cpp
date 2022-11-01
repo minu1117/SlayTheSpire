@@ -18,6 +18,9 @@ void BossMonster::BossPattenSet(int pattern, Player* player)
 
 	switch (pattern)
 	{
+	case -1:
+		bossPattern = BossPattern::Question;
+		break;
 	case 0: case 1:
 		SetDefend(defend + df);
 		bossPattern = BossPattern::Defense;

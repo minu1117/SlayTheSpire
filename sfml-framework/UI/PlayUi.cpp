@@ -209,7 +209,11 @@ void PlayUi::Update(float dt)
 
 	attackDelay -= dt;
 	monsterAttackDelay -= dt;
-	playerAttackImage->SetRotation(playerAttackImage->GetRotate() + dt * 60);
+
+	if (playerAttackImage->GetActive() == true)
+		playerAttackImage->SetRotation(playerAttackImage->GetRotate());
+	else
+		playerAttackImage->SetRotation(playerAttackImage->GetRotate() + dt * 5000);
 
 	if (ironClad->GetCurEnergy() == 0 && lastEnergyAttack == true)
 	{
@@ -526,6 +530,8 @@ void PlayUi::Update(float dt)
 			monsterCurHp->SetPos({ setMonsterUiPos.x - 30, setMonsterUiPos.y - 60});
 			monsterMaxHp->SetText(" /  " + to_string(boss->GetMaxHp()));
 			monsterMaxHp->SetPos({ setMonsterUiPos.x + 20, setMonsterUiPos.y - 60});
+
+			monsterBlock->SetPos({ monsterMaxHpBar->GetPos().x - monsterMaxHpBar->GetSize().x - 10, monsterMaxHpBar->GetPos().y });
 
 			monsterAttackImage->SetPos(boss->GetPos());
 			monsterAttackImage->SetScale(3, 5);
@@ -910,7 +916,6 @@ void PlayUi::SetNextMonsterAction()
 {
 	if (stage == Stage::Monster)
 	{
-		randomMonsterPattern = Utils::RandomRange(0, 4);
 		if (randomMonsterPattern <= 1)
 		{
 			int setDamage = 0;
@@ -958,47 +963,68 @@ void PlayUi::SetNextMonsterAction()
 	}
 	else if (stage == Stage::Boss)
 	{
-		randomMonsterPattern = Utils::RandomRange(0, 9);
-
-		if (randomMonsterPattern <= 1)
+		if (bossSecondPatturn > 0)
 		{
-			monsterPattern->SetText("DEFENCE");
-			monsterDamage->SetText("");
-			monsterDamage->SetActive(false);
+			randomMonsterPattern = secondPatturn;
 		}
-		else if (randomMonsterPattern == 2 || randomMonsterPattern == 3)
+		else
+			randomMonsterPattern = Utils::RandomRange(0, 9);
+
+		if (bossSecondPatturn == 0)
 		{
-			monsterPattern->SetText("Status Ailment");
-			monsterDamage->SetText("");
-			monsterDamage->SetActive(false);
+			if (randomMonsterPattern <= 1)
+			{
+				monsterPattern->SetText("DEFENCE");
+				monsterDamage->SetText("");
+				monsterDamage->SetActive(false);
+			}
+			else if (randomMonsterPattern == 2 || randomMonsterPattern == 3)
+			{
+				monsterPattern->SetText("Status Ailment");
+				monsterDamage->SetText("");
+				monsterDamage->SetActive(false);
+			}
+			else if (randomMonsterPattern == 4 || randomMonsterPattern == 5 || randomMonsterPattern == 6)
+			{
+				int setDamage = Utils::RandomRange(6, 12);
+				boss->SetDamage(setDamage);
+				monsterPattern->SetText("NORMAL ATTACK");
+
+				if (boss->GetIsWeaken() == 0)
+					monsterDamage->SetText("A : " + to_string((int)boss->GetDamage()));
+				else
+					monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2));
+
+				monsterDamage->SetActive(true);
+			}
+			else if (randomMonsterPattern == 7)
+			{
+				int setDamage = Utils::RandomRange(20, 40);
+				boss->SetDamage(setDamage);
+				monsterPattern->SetText("SMITE");
+
+				if (boss->GetIsWeaken() == 0)
+					monsterDamage->SetText("A : " + to_string((int)boss->GetDamage()));
+				else
+					monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2));
+
+				monsterDamage->SetActive(true);
+			}
+			else if (randomMonsterPattern == 8)
+			{
+				boss->SetDamage(6);
+				monsterPattern->SetText("NUKE");
+
+				if (boss->GetIsWeaken() == 0)
+					monsterDamage->SetText("A : " + to_string((int)boss->GetDamage()) + " X 6");
+				else
+					monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2) + " X 6");
+
+				monsterDamage->SetActive(true);
+			}
 		}
-		else if (randomMonsterPattern == 4 || randomMonsterPattern == 5 || randomMonsterPattern == 6)
-		{
-			int setDamage = Utils::RandomRange(6, 12);
-			boss->SetDamage(setDamage);
-			monsterPattern->SetText("NORMAL ATTACK");
 
-			if (boss->GetIsWeaken() == 0)
-				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage()));
-			else
-				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2));
-
-			monsterDamage->SetActive(true);
-		}
-		else if (randomMonsterPattern == 7)
-		{
-			int setDamage = Utils::RandomRange(20, 40);
-			boss->SetDamage(setDamage);
-			monsterPattern->SetText("SMITE");
-
-			if (boss->GetIsWeaken() == 0)
-				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage()));
-			else
-				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2));
-
-			monsterDamage->SetActive(true);
-		}
-		else if (randomMonsterPattern == 8)
+		if (bossSecondPatturn > 0)
 		{
 			boss->SetDamage(6);
 			monsterPattern->SetText("NUKE");
@@ -1009,10 +1035,15 @@ void PlayUi::SetNextMonsterAction()
 				monsterDamage->SetText("A : " + to_string((int)boss->GetDamage() / 2) + " X 6");
 
 			monsterDamage->SetActive(true);
+
+			bossStageSound = true;
 		}
 
 		monsterRandomPatternSetting = false;
 		isMonsterTern = false;
+
+		if (bossSecondPatturn > 0)
+			bossSecondPatturn--;
 	}
 }
 
@@ -2217,8 +2248,12 @@ void PlayUi::EnterTheStage(float dt)
 		}
 		if (choiceDelay <= 0.f && bossMapOrder == choiceOrder && mapChoice == true)
 		{
+			monsterPattern->SetText("???");
+			monsterDamage->SetText("");
+			monsterDamage->SetActive(false);
+			randomMonsterPattern = -1;
 			stage = Stage::Boss;
-			bossStageSound = true;
+			SOUND_MGR->StopAll();
 			mapUi = false;
 			mapChoice = false;
 		}
@@ -2866,6 +2901,7 @@ void PlayUi::ResetPlayUi()
 	isChestOpen = false;
 	gameSound = true;
 	bossStageSound = false;
+	lastEnergyAttack = true;
 	stage = Stage::Start;
 	bossCount = 1;
 	SOUND_MGR->StopAll();

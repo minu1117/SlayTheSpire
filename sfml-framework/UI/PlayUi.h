@@ -189,6 +189,10 @@ protected:
 
 	float dieDelay;
 
+	int firstPatturn = -1;
+	int secondPatturn = 8;
+	int bossSecondPatturn = 1;
+
 
 	//energy image
 	SpriteObj* energyLayer;

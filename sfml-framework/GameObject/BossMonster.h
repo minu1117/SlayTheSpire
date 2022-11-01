@@ -3,6 +3,7 @@
 
 enum class BossPattern
 {
+	Question = -1,
 	NormalAttack,
 	Smite,
 	Nuke,
