@@ -435,6 +435,8 @@ void PlayUi::Update(float dt)
 		MonsterSet(monster, false);
 		SetActionUi(false);
 		ShopStage();
+		getSmiteGold->SetActive(true);
+		getClubbingGold->SetActive(true);
 	}
 	else
 	{
@@ -916,6 +918,7 @@ void PlayUi::SetNextMonsterAction()
 {
 	if (stage == Stage::Monster)
 	{
+		randomMonsterPattern = Utils::RandomRange(0, 4);
 		if (randomMonsterPattern <= 1)
 		{
 			int setDamage = 0;
@@ -1816,7 +1819,7 @@ void PlayUi::UiCreate()
 		getClubbingGold->SetAll(font, "", 40, Color::White, { 0, 0 });
 	}
 
-	// reword
+	// reward
 	{
 		rewordImage = new SpriteObj();
 		chest = new SpriteObj();
@@ -1834,7 +1837,7 @@ void PlayUi::UiCreate()
 		addDamage->SetAll(font, "", 40, Color::White, { -500,0 });
 		addDefend->SetAll(font, "", 40, Color::White, { -500,0 });
 		addHp->SetAll(font, "", 40, Color::White, { -500,0 });
-		rewordText->SetAll(font, "REWORD!", 80, Color::White, { -500,0 });
+		rewordText->SetAll(font, "REWARD!", 80, Color::White, { -500,0 });
 	}
 
 
@@ -2900,8 +2903,11 @@ void PlayUi::ResetPlayUi()
 	clubbingOn = false;
 	isChestOpen = false;
 	gameSound = true;
+	mapChoice = false;
 	bossStageSound = false;
 	lastEnergyAttack = true;
+	playerTurnSoundDelay = 1.f;
+	bossSecondPatturn = 1;
 	stage = Stage::Start;
 	bossCount = 1;
 	SOUND_MGR->StopAll();
